@@ -1,31 +1,20 @@
+// replace existing balance logic in script.js
+async function updateRealTimeData() {
+    if (typeof window.ethereum !== 'undefined') {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        const address = accounts[0];
 
-// arcpro wallet - core logic for arc network & usdc
-const arcConfig = {
-    rpcUrl: "https://rpc-testnet.arc.network", // example rpc
-    usdcAddress: "0x...", // circle usdc contract address on arc
-    chainId: 12345 // replace with actual arc chain id
-};
+        // get balance
+        const balance = await provider.getBalance(address);
+        document.getElementById('balanceDisplay').innerText = ethers.utils.formatEther(balance);
 
-async function connectWallet() {
-    if (window.ethereum) {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log("connected to:", accounts[0]);
-            updateUI(accounts[0]);
-        } catch (error) {
-            console.error("connection failed", error);
-        }
-    } else {
-        alert("please install metamask to use arcpro");
+        // get transactions (last 5)
+        const history = await provider.getHistory(address);
+        const recentTx = history.slice(0, 5);
+        console.log("recent activity:", recentTx);
     }
 }
 
-// implementation for tracking usdc balance on arc
-async function getUSDCBalance(walletAddress) {
-    // logic to call erc20 contract for usdc balance
-    console.log("fetching usdc balance on arc network...");
-}
-
-function updateUI(address) {
-    // logic to update frontend with wallet data
-}
+// call this on interval for real-time feel
+setInterval(updateRealTimeData, 10000); 
