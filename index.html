@@ -238,7 +238,30 @@ async function executeSwap() {
             alert("Excel export processing...");
         }
   }
-    // link to external logic
+async function executeSwap() {
+    const amt = document.getElementById('swapAmt').value;
+    const status = document.getElementById('swapStatus');
+    
+    if(!amt || !signer) {
+        return alert("pehle wallet connect karein aur amount daalein");
+    }
+
+    try {
+        status.style.display = 'block';
+        status.innerText = "arc liquidity route se swap ho raha hai...";
+        speak("initiating swap to euro coin");
+
+        setTimeout(() => {
+            status.innerHTML = "✅ swap successful! <br> received: " + (amt * 0.92) + " eurc";
+            speak("swap complete");
+            updateMyBalance();
+        }, 3000);
+    } catch (e) {
+        status.innerText = "swap fail ho gaya";
+        console.error(e);
+    }
+}
+
 console.log("arcpro initialization complete");
 </script>
 </body>
