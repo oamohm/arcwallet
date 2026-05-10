@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArcPro Flow Router</title>
+    <title>Arc pro wallet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <style>
         :root { --primary: #3b82f6; --bg: #0b0f1a; --card: #161e2d; --text: #f1f5f9; }
@@ -15,7 +15,6 @@
         .balance-value { font-size: 3em; font-weight: 800; text-align: center; margin: 10px 0; color: #fff; }
         .btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; width: 100%; font-weight: 700; cursor: pointer; font-size: 1em; transition: 0.3s; }
         .btn:hover { background: #2563eb; }
-        .btn-secondary { background: #334155; margin-top: 10px; }
         input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #2d3748; background: #0b0f1a; color: white; box-sizing: border-box; outline: none; }
         .status { font-size: 0.75em; text-align: center; color: #10b981; margin-top: 10px; }
         .activity-table { width: 100%; margin-top: 15px; font-size: 0.85em; }
@@ -27,7 +26,7 @@
 
 <div class="app-container">
     <div class="header">
-        <h2 style="margin:0; font-style: italic;">ArcPro <span style="color:var(--primary)">Router</span></h2>
+        <h2 style="margin:0; font-style: italic;">Arc pro <span style="color:var(--primary)">wallet</span></h2>
         <button class="btn" id="connectBtn" onclick="connectWallet()" style="width:auto; padding: 8px 16px; font-size: 0.8em;">Connect</button>
     </div>
 
@@ -58,9 +57,8 @@
 <script>
 let provider, signer, myAddress;
 
-// Research-based Arc Testnet Details
 const RPC_URL = "https://arc-testnet.drpc.org"; 
-const CHAIN_ID = "0x4cef52"; // 5042002
+const CHAIN_ID = "0x4cef52"; 
 const USDC_ADDRESS = "0x3600000000000000000000000000000000000000"; 
 const USDC_ABI = [
     "function balanceOf(address) view returns (uint256)",
@@ -71,7 +69,6 @@ const USDC_ABI = [
 async function connectWallet() {
     if (window.ethereum) {
         try {
-            // MetaMask ke andar network check/switch karne ka logic
             try {
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
