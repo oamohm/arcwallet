@@ -12,7 +12,7 @@
         button { background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #2d3748; background: #0b0f1a; color: white; box-sizing: border-box; }
         .balance-txt { font-size: 2.2em; font-weight: bold; text-align: center; margin: 10px 0; }
-        .status { color: #10b981; font-size: 0.8em; word-break: break-all; }
+        .status { color: #10b981; font-size: 0.8em; word-break: break-all; text-align: center; }
     </style>
 </head>
 <body>
@@ -26,7 +26,7 @@
     </div>
 
     <div class="card">
-        <p style="text-align: center; color: #94a3b8;">USDC Balance</p>
+        <p style="text-align: center; color: #94a3b8;">Your USDC Balance</p>
         <div class="balance-txt" id="myBalance">0.00 USDC</div>
     </div>
 
@@ -56,66 +56,49 @@ const USDC_ABI = [
 async function connectWallet() {
     if (typeof window.ethereum !== 'undefined') {
         try {
-            // New way to initialize provider in Ethers v6
             provider = new ethers.BrowserProvider(window.ethereum);
             const accounts = await provider.send("eth_requestAccounts", []);
             signer = await provider.getSigner();
             myAddress = accounts[0];
-            
-            document.getElementById('walletAddr').innerText = "Connected: " + myAddress;
+            document.getElementById('walletAddr').innerText = "Active: " + myAddress;
             document.getElementById('connectBtn').innerText = "Linked";
-            
             await updateMyBalance();
-        } catch (e) {
-            console.error(e);
-            alert("Connection rejected");
-        }
-    } else {
-        alert("MetaMask nahi mil raha. Please mobile browser mein connect karein.");
-    }
+        } catch (e) { console.error(e); alert("Connection rejected"); }
+    } else { alert("MetaMask not found"); }
 }
 
 async function updateMyBalance() {
     if (!myAddress) return;
     try {
         const contract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
-        const [bal, dec] = await Promise.all([
-            contract.balanceOf(myAddress),
-            contract.decimals()
-        ]);
+        const [bal, dec] = await Promise.all([contract.balanceOf(myAddress), contract.decimals()]);
         const formatted = ethers.formatUnits(bal, dec);
         document.getElementById('myBalance').innerText = parseFloat(formatted).toFixed(2) + " USDC";
-    } catch (e) {
-        console.error("Balance fetch failed", e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function sendUSDC() {
     const to = document.getElementById('toAddr').value;
     const amt = document.getElementById('sendAmt').value;
-    if (!signer || !to || !amt) return alert("Pehle wallet connect karein");
-
+    if (!signer || !to || !amt) return alert("Fill details");
     try {
         const contract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, signer);
         const dec = await contract.decimals();
         const tx = await contract.transfer(to, ethers.parseUnits(amt.toString(), dec));
-        alert("Transaction Sent! Hash: " + tx.hash);
+        alert("Transaction Sent!");
         await tx.wait();
         updateMyBalance();
-    } catch (e) {
-        alert("Error: " + e.message);
-    }
+    } catch (e) { alert("Error: " + e.message); }
 }
 
 async function executeSwap() {
     const amt = document.getElementById('swapAmt').value;
     const status = document.getElementById('swapStatus');
     if(!amt || !signer) return alert("Details missing");
-
     status.style.display = 'block';
-    status.innerText = "Processing swap on Arc Network...";
+    status.innerText = "Processing swap...";
     setTimeout(() => {
-        status.innerHTML = "✅ Swap Successful! Received EURC";
+        status.innerHTML = "✅ Swap Successful!";
         updateMyBalance();
     }, 2500);
 }
