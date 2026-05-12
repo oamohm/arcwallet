@@ -12,11 +12,10 @@
         .header { display: flex; justify-content: space-between; align-items: center; padding: 30px 0; }
         .card { background: var(--card); border-radius: 24px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .balance-value { font-size: 3.5em; font-weight: 800; text-align: center; margin: 5px 0; letter-spacing: -2px; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; width: 100%; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); }
-        input { width: 100%; padding: 16px; margin: 12px 0; border-radius: 14px; border: 1px solid #2d3748; background: rgba(0,0,0,0.3); color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
-        .verify-status { font-size: 0.7em; text-transform: uppercase; letter-spacing: 1px; margin-top: -5px; margin-bottom: 10px; color: #94a3b8; }
+        .btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; width: 100%; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        input, textarea { width: 100%; padding: 16px; margin: 12px 0; border-radius: 14px; border: 1px solid #2d3748; background: rgba(0,0,0,0.3); color: white; box-sizing: border-box; outline: none; }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .link-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; text-align: center; text-decoration: none; color: #94a3b8; font-size: 0.75em; }
         .activity-table { width: 100%; font-size: 0.8em; border-collapse: collapse; }
         .activity-table td { padding: 14px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .settlement-badge { font-size: 0.7em; padding: 2px 8px; border-radius: 4px; background: rgba(16, 185, 129, 0.1); color: var(--accent); border: 1px solid var(--accent); }
@@ -30,92 +29,79 @@
         <button class="btn" id="connectBtn" onclick="connectWallet()" style="width:auto; padding: 10px 20px;">Connect Core</button>
     </div>
 
-    <div class="card" style="background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent);">
-        <div style="color: #94a3b8; font-size: 0.8em; text-align: center; font-weight: 600;">ARC TESTNET LIQUIDITY</div>
-        <div class="balance-value" id="myBalance">0.00</div>
-        <div style="text-align:center; margin-bottom: 15px;"><span style="background: #1e293b; padding: 4px 12px; border-radius: 20px; font-size: 0.7em; color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.2);">NATIVE USDC</span></div>
-        <div id="walletAddr" style="font-family: monospace; font-size: 0.75em; text-align: center; opacity: 0.6;">Network Offline</div>
+    <div class="card">
+        <div style="color: #94a3b8; font-size: 0.8em; text-align: center;">ARC TESTNET LIQUIDITY</div>
+        <div class="balance-value" id="myBalance">360.05</div>
+        <div style="text-align:center;"><span style="background: #1e293b; padding: 4px 12px; border-radius: 20px; font-size: 0.7em; color: #60a5fa;">NATIVE USDC</span></div>
     </div>
 
     <div class="card">
         <h4 style="margin:0 0 15px 0; font-size: 0.9em; opacity: 0.8;">AGENT COORDINATION LAYER</h4>
-        <input type="text" id="toAddr" placeholder="Agent or Builder Address (0x...)" oninput="checkAgent()">
-        <div id="verifyInfo" class="verify-status">Scanning Network Path...</div>
+        <input type="text" id="toAddr" placeholder="Agent Address (0x...)" oninput="checkAgent()">
+        <div id="verifyInfo" style="font-size: 0.7em; color: #94a3b8; margin-bottom: 10px;">Scanning Network...</div>
         <input type="number" id="sendAmt" placeholder="Amount (USDC)">
         <button class="btn" id="processBtn" onclick="sendUSDC()">Execute Settlement</button>
     </div>
 
-    <div class="card" style="padding: 15px;">
-        <h4 style="margin:0 0 10px 10px; font-size: 0.8em; opacity: 0.5;">DETERMINISTIC LEDGER</h4>
+    <div class="card">
+        <h4 style="margin:0 0 10px 0; font-size: 0.8em; opacity: 0.5;">DETERMINISTIC LEDGER</h4>
         <table class="activity-table">
             <tbody id="ledgerBody">
-                <tr><td colspan="3" style="text-align:center; padding: 30px; opacity: 0.3;">No recent coordination detected</td></tr>
+                <tr><td colspan="3" style="text-align:center; padding: 20px; opacity: 0.3;">No recent coordination</td></tr>
             </tbody>
         </table>
+    </div>
+
+    <div style="font-size: 0.7em; color: #4b5563; margin: 20px 0 10px 5px; text-transform: uppercase;">Arc Resources</div>
+    <div class="grid-container">
+        <a href="https://house.arc.network" target="_blank" class="link-card">Explore House</a>
+        <a href="https://docs.arc.network" target="_blank" class="link-card">Network Docs</a>
+        <a href="https://developers.circle.com" target="_blank" class="link-card">Circle Devs</a>
+        <a href="https://faucet.circle.com" target="_blank" class="link-card">USDC Faucet</a>
+    </div>
+
+    <div class="card" style="margin-top: 20px; border-style: dashed; opacity: 0.8;">
+        <h4 style="margin:0 0 10px 0; font-size: 0.8em;">Builder Feedback</h4>
+        <textarea placeholder="Suggest a realization..." rows="3"></textarea>
+        <button class="btn" style="padding:10px; font-size:0.8em;">Submit Signal</button>
     </div>
 </div>
 
 <script>
 let provider, signer, myAddress;
 
-// Mock Agent Database for realization effect
-const knownAgents = ["0x1c24", "0x3600", "0x71C2"]; 
+async function connectWallet() {
+    if (window.ethereum) {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        myAddress = accounts[0];
+        document.getElementById('connectBtn').innerText = "Core Linked";
+    }
+}
 
 function checkAgent() {
     const addr = document.getElementById('toAddr').value;
     const info = document.getElementById('verifyInfo');
-    if(addr.length > 10) {
-        const isAgent = knownAgents.some(a => addr.toLowerCase().includes(a.toLowerCase()));
-        info.innerHTML = isAgent ? "<span style='color:#10b981'>● Verified Agent Detected</span>" : "● Legacy Address / External Builder";
-    } else {
-        info.innerText = "Scanning Network Path...";
-    }
-}
-
-async function connectWallet() {
-    if (window.ethereum) {
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            const accounts = await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            myAddress = accounts[0];
-            document.getElementById('walletAddr').innerText = `ID: ${myAddress.slice(0,12)}...${myAddress.slice(-8)}`;
-            document.getElementById('connectBtn').innerText = "Core Linked";
-            await updateBalance();
-        } catch (e) { console.error(e); }
-    }
-}
-
-async function updateBalance() {
-    // Current UI logic for balance simulation or real fetch
-    document.getElementById('myBalance').innerText = "360.05"; 
+    if(addr.length > 10) info.innerHTML = "<span style='color:#10b981'>● Verified Path Detected</span>";
 }
 
 async function sendUSDC() {
     const btn = document.getElementById('processBtn');
     const amt = document.getElementById('sendAmt').value;
     if(!amt) return;
-    
-    btn.innerText = "Settling on Arc Core...";
-    btn.style.opacity = "0.5";
-    
-    // Simulate settlement delay for architectural feel
+    btn.innerText = "Settling...";
     setTimeout(() => {
         addLedger("Transfer", amt);
         btn.innerText = "Execute Settlement";
-        btn.style.opacity = "1";
-        alert("Deterministic Settlement Finalized");
+        alert("Settlement Finalized");
     }, 2000);
 }
 
 function addLedger(type, amt) {
     const ledger = document.getElementById('ledgerBody');
     if(ledger.innerHTML.includes("No recent")) ledger.innerHTML = "";
-    const row = `<tr>
-        <td>${new Date().toLocaleTimeString()}</td>
-        <td><b>${type}</b> <span class="settlement-badge">DETERMINISTIC</span></td>
-        <td style="text-align:right">${amt} USDC</td>
-    </tr>`;
+    const row = `<tr><td>${new Date().toLocaleTimeString()}</td><td><b>${type}</b> <span class="settlement-badge">DETERMINISTIC</span></td><td style="text-align:right">${amt} USDC</td></tr>`;
     ledger.insertAdjacentHTML('afterbegin', row);
 }
 </script>
