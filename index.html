@@ -109,6 +109,7 @@ color:white;
 margin-top:15px;
 font-size:14px;
 color:#91a4ff;
+word-break:break-word;
 }
 
 .confirmBox{
@@ -196,7 +197,7 @@ placeholder="Recipient Address">
 
 <input
 id="amount"
-placeholder="Amount">
+placeholder="Amount In ETH">
 
 <button onclick="prepareTransaction()">
 Continue
@@ -248,7 +249,7 @@ try{
 
 if(!window.ethereum){
 
-alert("Install MetaMask");
+alert("Install MetaMask Wallet");
 
 return;
 
@@ -301,20 +302,15 @@ async function loadBalance(){
 try{
 
 const balanceWei =
-await provider.getBalance(
-userAddress
-);
+await provider.getBalance(userAddress);
 
 const balanceEth =
-ethers.formatEther(
-balanceWei
-);
+ethers.formatEther(balanceWei);
 
 document.getElementById(
 "balance"
 ).innerHTML =
-Number(balanceEth)
-.toFixed(4);
+Number(balanceEth).toFixed(4) + " ETH";
 
 }catch(err){
 
@@ -334,12 +330,12 @@ function prepareTransaction(){
 const recipient =
 document.getElementById(
 "recipient"
-).value;
+).value.trim();
 
 const amount =
 document.getElementById(
 "amount"
-).value;
+).value.trim();
 
 if(!recipient || !amount){
 
@@ -381,32 +377,64 @@ try{
 const recipient =
 document.getElementById(
 "recipient"
-).value;
+).value.trim();
 
 const amount =
 document.getElementById(
 "amount"
-).value;
+).value.trim();
+
+if(!ethers.isAddress(recipient)){
+
+alert("Invalid Wallet Address");
+
+return;
+
+}
+
+if(Number(amount) <= 0){
+
+alert("Enter Valid Amount");
+
+return;
+
+}
 
 document.getElementById(
 "status"
 ).innerHTML =
-"Preparing Transaction...";
+"Opening Wallet Confirmation...";
+
+const balance =
+await provider.getBalance(userAddress);
+
+const value =
+ethers.parseEther(amount);
+
+if(balance < value){
+
+document.getElementById(
+"status"
+).innerHTML =
+"Insufficient Balance";
+
+return;
+
+}
 
 const tx =
 await signer.sendTransaction({
 
 to: recipient,
 
-value:
-ethers.parseEther(amount)
+value: value
 
 });
 
 document.getElementById(
 "status"
 ).innerHTML =
-"Waiting For Confirmation...";
+"Transaction Pending...";
 
 await tx.wait();
 
@@ -428,6 +456,8 @@ console.log(err);
 document.getElementById(
 "status"
 ).innerHTML =
+err.reason ||
+err.message ||
 "Transaction Failed";
 
 }
