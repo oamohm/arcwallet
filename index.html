@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ArcPro • Universal Multi-Asset Router</title>
+  <title>ArcPro • Universal Wallet</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
@@ -14,20 +14,22 @@
     .logo { font-size:22px; font-weight:600; }
     .card { background:#1a1a24; margin:16px; border-radius:16px; padding:20px; }
     button { background:#3b82f6; color:white; border:none; padding:14px; border-radius:12px; width:100%; font-weight:600; cursor:pointer; font-size:16px; }
-    button:disabled { background:#334155; cursor:not-allowed; }
+    button:disabled { background:#334155; }
     input, select { width:100%; background:#22222f; border:none; padding:14px; border-radius:12px; color:white; margin:8px 0; font-size:16px; }
     .quick { display:flex; gap:8px; margin:12px 0; }
     .quick button { background:#22222f; flex:1; padding:12px; border-radius:12px; font-size:15px; }
     .status { color:#eab308; }
     .connected { color:#22c55e !important; }
     .balance { font-size:28px; font-weight:600; margin:8px 0; }
+    .tx { font-size:13px; padding:10px; background:#22222f; border-radius:8px; margin:8px 0; word-break:break-all; }
+    #musicToggle { position:fixed; bottom:20px; right:20px; background:#222; padding:10px; border-radius:50%; cursor:pointer; z-index:100; }
   </style>
 </head>
 <body>
   <div class="container">
 
     <header>
-      <div class="logo">ArcFlow Pro</div>
+      <div class="logo">ArcPro</div>
       <button onclick="connectWallet()" id="connectBtn">Connect</button>
     </header>
 
@@ -41,6 +43,7 @@
       </div>
     </div>
 
+    <!-- SEND ASSET -->
     <div class="card">
       <strong style="display:flex;align-items:center;gap:8px;">↗ SEND ASSET</strong>
       
@@ -62,13 +65,20 @@
       <button onclick="sendUSDC()">Confirm Send</button>
     </div>
 
+    <!-- Transaction History -->
+    <div class="card">
+      <strong>Recent Transactions</strong>
+      <div id="txHistory" style="margin-top:12px; max-height:300px; overflow-y:auto;"></div>
+    </div>
+
+    <!-- Ecosystem -->
     <div class="card">
       <strong>ECOSYSTEM & SOCIALS</strong>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;">
         <div onclick="window.open('https://arc.network')" style="background:#22222f;padding:12px;border-radius:12px;text-align:center;cursor:pointer;">Website</div>
         <div onclick="window.open('https://docs.arc.network')" style="background:#22222f;padding:12px;border-radius:12px;text-align:center;cursor:pointer;">Docs</div>
         <div style="background:#22222f;padding:12px;border-radius:12px;text-align:center;cursor:pointer;">House</div>
-        <div onclick="window.open('https://x.com/arcnetwork')" style="background:#22222f;padding:12px;border-radius:12px;text-align:center;cursor:pointer;">X</div>
+        <div onclick="window.open('https://x.com/Bhupendrxsingh')" style="background:#22222f;padding:12px;border-radius:12px;text-align:center;cursor:pointer;">X</div>
         <div onclick="window.open('https://discord.gg/arcnetwork')" style="background:#22222f;padding:12px;border-radius:12px;text-align:center;cursor:pointer;">Discord</div>
       </div>
     </div>
@@ -78,8 +88,16 @@
     </div>
   </div>
 
+  <!-- Music Toggle -->
+  <div id="musicToggle" onclick="toggleMusic()">♪</div>
+
+  <audio id="bgMusic" loop>
+    <source src="https://assets.mixkit.co/sfx/preview/123/123.wav" type="audio/wav"> <!-- Replace with better lo-fi if needed -->
+  </audio>
+
   <script>
     let provider, signer, userAddress;
+    let txHistory = [];
 
     const ARC_TESTNET = {
       chainId: "0x4cef52",
@@ -95,54 +113,39 @@
       btn.innerText = "Connecting...";
 
       if (!window.ethereum) {
-        alert("MetaMask nahi mila. Browser extension install karo.");
+        alert("MetaMask install karo");
         resetBtn();
         return;
       }
 
       try {
-        // Sirf accounts request pehle (sabse safe)
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_requestAccounts' 
-        });
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         userAddress = accounts[0];
 
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
 
-        // Network check aur switch (background mein)
+        // Network switch
         const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
         if (currentChain !== ARC_TESTNET.chainId) {
           try {
-            await window.ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: ARC_TESTNET.chainId }]
-            });
-          } catch (switchErr) {
-            if (switchErr.code === 4902) {
-              await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [ARC_TESTNET]
-              });
-            }
+            await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_TESTNET.chainId }] });
+          } catch (e) {
+            if (e.code === 4902) await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [ARC_TESTNET] });
           }
         }
 
-        // Success UI update
         btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
         btn.style.backgroundColor = "#22c55e";
         document.getElementById("status").innerText = "Connected";
         document.getElementById("status").classList.add("connected");
 
         getBalance();
+        addFakeTx("Wallet Connected", userAddress);
 
       } catch (error) {
         console.error(error);
-        if (error.code === 4001) {
-          alert("Connect request cancel kar diya. Phir se try karo.");
-        } else {
-          alert("Error: " + error.message);
-        }
+        alert("Connect failed: " + (error.message || "User rejected"));
         resetBtn();
       }
     }
@@ -158,9 +161,9 @@
       if (!provider || !userAddress) return;
       try {
         const bal = await provider.getBalance(userAddress);
-        const usdcBal = (parseFloat(bal) / 1000000).toFixed(2);
+        const usdcBal = (parseFloat(bal) / 1e6).toFixed(2);
         document.getElementById("balanceDisplay").innerText = usdcBal + " USDC";
-      } catch(e) { }
+      } catch(e) {}
     }
 
     function setAmount(val) { document.getElementById("amount").value = val; }
@@ -168,22 +171,66 @@
     async function sendUSDC() {
       if (!signer) { alert("Pehle Connect karo"); return; }
       const to = document.getElementById("recipient").value.trim();
-      const amt = document.getElementById("amount").value;
+      const amt = parseFloat(document.getElementById("amount").value);
 
-      if (!to || !ethers.utils.isAddress(to)) { alert("Sahih address daalo"); return; }
-      if (parseFloat(amt) <= 0) { alert("Amount daalo"); return; }
+      if (!ethers.utils.isAddress(to)) { alert("Sahih address daalo"); return; }
+      if (amt <= 0) { alert("Amount daalo"); return; }
 
       try {
         const tx = await signer.sendTransaction({
           to: to,
-          value: ethers.utils.parseUnits(amt, 6)
+          value: ethers.utils.parseUnits(amt.toString(), 6)
         });
-        alert(`Tx bheji gayi!\nHash: ${tx.hash}`);
+
+        addTxToHistory(tx.hash, amt, to);
+        alert(`Transaction sent!\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
+        
+        setTimeout(getBalance, 3000); // Refresh balance
       } catch (e) {
-        alert("Tx fail: " + e.message);
+        alert("Send failed: " + e.message);
       }
     }
 
+    function addTxToHistory(hash, amount, to) {
+      const tx = {
+        hash: hash.slice(0,10) + "...",
+        amount: amount,
+        to: to.slice(0,8) + "...",
+        time: new Date().toLocaleTimeString()
+      };
+      txHistory.unshift(tx);
+      if (txHistory.length > 5) txHistory.pop();
+      renderTxHistory();
+    }
+
+    function addFakeTx(title, addr) {
+      txHistory.unshift({ hash: title, amount: "-", to: addr.slice(0,8)+"..." , time: new Date().toLocaleTimeString() });
+      renderTxHistory();
+    }
+
+    function renderTxHistory() {
+      const container = document.getElementById("txHistory");
+      container.innerHTML = txHistory.map(tx => `
+        <div class="tx">
+          <div>${tx.time} • ${tx.amount} USDC</div>
+          <div style="color:#888;">to ${tx.to}</div>
+          ${tx.hash.startsWith('0x') ? `<a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank" style="color:#60a5fa;">View</a>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function toggleMusic() {
+      const audio = document.getElementById("bgMusic");
+      if (audio.paused) {
+        audio.play();
+        document.getElementById("musicToggle").innerText = "⏸";
+      } else {
+        audio.pause();
+        document.getElementById("musicToggle").innerText = "♪";
+      }
+    }
+
+    // Event listeners
     window.ethereum?.on('accountsChanged', () => window.location.reload());
     window.ethereum?.on('chainChanged', () => window.location.reload());
   </script>
