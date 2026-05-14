@@ -1,15 +1,18 @@
-# arcpro usdc wallet
+# Arc Pro Wallet v2.0
+An advanced on-chain settlement interface built on the Arc Network.
 
-a clean web3 interface to manage and verify usdc transactions directly on the arc network.
+## ⚡ Overview
+Arc Pro Wallet is a high-performance, non-custodial interface designed for the agentic economy. It leverages stablecoin-native financial primitives to enable seamless, cross-border USDC settlements without bridging friction.
 
-## core features
-* smart wallet connection via metamask
-* real-time usdc balance tracking
-* secure peer-to-peer transfers
-* local transaction ledger
+## 🚀 Key Features
+- **ERC-20 Optimization:** Native support for USDC settlement on Arc Testnet.
+- **Agentic Ready:** Structured for future autonomous agent-to-agent transactions.
+- **Zero-Friction:** Optimized routing for high-speed value transfer.
 
-## tech stack
-* html, css, vanilla javascript
-* ethers.js for blockchain interaction
+## 🛠 Tech Stack
+- **Engine:** Ethers.js v6 (Unified Provider)
+- **Framework:** Vanilla JavaScript / HTML5 / CSS3
+- **Network:** Arc L1 (by Circle)
 
-deployed directly via vercel.
+## 📦 Deployment
+Deploy the `index.html` via Vercel or any static host. Ensure the `USDC_ADDR` is mapped to the current Arc Scan contract address.
