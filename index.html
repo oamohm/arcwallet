@@ -18,8 +18,8 @@
     input, select { width:100%; background:#22222f; border:none; padding:14px; border-radius:12px; color:white; margin:8px 0; font-size:16px; }
     .quick { display:flex; gap:8px; margin:12px 0; }
     .quick button { background:#22222f; flex:1; padding:12px; border-radius:12px; font-size:15px; }
-    .status { color:#22c55e; font-weight:500; }
-    .balance { font-size:28px; font-weight:600; margin:8px 0; }
+    .status { color:#eab308; font-weight:500; }
+    .connected { color:#22c55e !important; }
   </style>
 </head>
 <body>
@@ -36,7 +36,7 @@
           <strong>ARC TESTNET</strong><br>
           <span id="balanceDisplay" class="balance">0.00 USDC</span>
         </div>
-        <span id="status" style="color:#eab308;">Idle</span>
+        <span id="status" class="status">Idle</span>
       </div>
     </div>
 
@@ -83,7 +83,7 @@
     let provider, signer, userAddress;
 
     const ARC_TESTNET = {
-      chainId: "0x4cef52",          // 5042002
+      chainId: "0x4cef52",        // 5042002
       chainName: "Arc Testnet",
       nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
       rpcUrls: ["https://rpc.testnet.arc.network"],
@@ -91,41 +91,73 @@
     };
 
     async function connectWallet() {
+      const btn = document.getElementById("connectBtn");
+      btn.disabled = true;
+      btn.innerText = "Connecting...";
+
       if (!window.ethereum) {
-        alert("MetaMask install karo bhai");
+        alert("MetaMask install karo");
+        resetButton();
         return;
       }
 
       try {
-        // Add / Switch network
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [ARC_TESTNET]
-        });
+        // Pehle try switch network
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: ARC_TESTNET.chainId }]
+          });
+        } catch (switchError) {
+          if (switchError.code === 4902) { // Chain not added
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [ARC_TESTNET]
+            });
+          } else {
+            throw switchError; // User rejected switch
+          }
+        }
 
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        // Connect accounts
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        userAddress = accounts[0];
 
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
-        userAddress = await signer.getAddress();
 
-        document.getElementById("connectBtn").innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+        // Update UI
+        btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+        btn.style.background = "#22c55e";
         document.getElementById("status").innerText = "Connected";
-        document.getElementById("status").style.color = "#22c55e";
+        document.getElementById("status").classList.add("connected");
 
         getBalance();
+
       } catch (error) {
         console.error(error);
-        alert("Connect failed: " + error.message);
+        if (error.code === 4001 || error.message.includes("rejected")) {
+          alert("Request cancel kar diya. Phir se Connect dabao.");
+        } else {
+          alert("Connect failed: " + error.message);
+        }
+        resetButton();
       }
+    }
+
+    function resetButton() {
+      const btn = document.getElementById("connectBtn");
+      btn.disabled = false;
+      btn.innerText = "Connect";
+      btn.style.background = "";
     }
 
     async function getBalance() {
       if (!provider || !userAddress) return;
       try {
         const bal = await provider.getBalance(userAddress);
-        const usdcBal = (parseFloat(bal) / 1e6).toFixed(2);
-        document.getElementById("balanceDisplay").innerText = usdcBal + " USDC";
+        const usdc = (parseFloat(bal) / 1e6).toFixed(2);
+        document.getElementById("balanceDisplay").innerText = usdc + " USDC";
       } catch(e) {}
     }
 
@@ -145,7 +177,7 @@
         alert("Sahih recipient address daalo");
         return;
       }
-      if (!amount || parseFloat(amount) <= 0) {
+      if (parseFloat(amount) <= 0) {
         alert("Amount daalo");
         return;
       }
@@ -155,13 +187,13 @@
           to: to,
           value: ethers.utils.parseUnits(amount, 6)
         });
-        alert(`Transaction bheji gayi!\nHash: ${tx.hash}`);
+        alert(`Transaction sent!\nHash: ${tx.hash}\n\nExplorer pe check karo.`);
       } catch (e) {
-        alert("Error: " + e.message);
+        alert("Transaction failed: " + e.message);
       }
     }
 
-    // Listen for account change
+    // Auto refresh on change
     window.ethereum?.on('accountsChanged', () => window.location.reload());
     window.ethereum?.on('chainChanged', () => window.location.reload());
   </script>
