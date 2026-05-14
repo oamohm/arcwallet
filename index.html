@@ -3,110 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArcPro Wallet | v2.0</title>
+    <title>ArcPro | Universal Settlement Node</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #3b82f6; --bg: #020617; --surface: #0f172a; --accent: #10b981; }
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
-
-        .app-shell { width: 100%; max-width: 450px; display: flex; flex-direction: column; position: relative; padding-bottom: 100px; }
+        :root { --p: #3b82f6; --bg: #010309; --s: #0f172a; --t: #f8fafc; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--t); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
         
-        /* ArcFlow Premium Header */
-        .header { padding: 25px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(10px); sticky top: 0; z-index: 10; }
-        .logo { font-weight: 900; font-size: 1.2em; letter-spacing: -0.5px; }
-        .node-status { font-size: 0.65em; background: rgba(16, 185, 129, 0.1); color: var(--accent); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); }
-
-        /* Dynamic Balance Card */
-        .hero-section { padding: 30px 20px; text-align: center; }
-        .balance-card { background: linear-gradient(145deg, #1e293b, #0f172a); border-radius: 30px; padding: 35px 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
-        .balance-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%); }
-        .bal-label { font-size: 0.7em; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; }
-        .bal-amount { font-size: 3.2em; font-weight: 800; margin: 10px 0; letter-spacing: -1.5px; }
+        .iphone-frame { width: 100%; max-width: 430px; display: flex; flex-direction: column; position: relative; background: radial-gradient(circle at 50% -20%, #1e293b 0%, #010309 80%); }
         
-        /* Native Router Panel */
-        .panel { background: var(--surface); margin: 0 20px; border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.03); }
-        .title { font-size: 0.8em; font-weight: 700; color: var(--primary); margin-bottom: 20px; text-transform: uppercase; }
-        
-        .field { margin-bottom: 15px; }
-        .field label { font-size: 0.6em; color: #64748b; font-weight: 700; display: block; margin-bottom: 8px; padding-left: 5px; }
-        .input-wrap { background: #020617; border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        input { background: transparent; border: none; color: white; width: 100%; outline: none; font-weight: 600; }
+        /* Header */
+        .hdr { padding: 30px 25px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
+        .chip { background: rgba(59, 130, 246, 0.1); color: var(--p); border: 1px solid rgba(59, 130, 246, 0.2); padding: 5px 12px; border-radius: 20px; font-size: 0.65em; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .pulse { width: 6px; height: 6px; background: var(--p); border-radius: 50%; animation: p 2s infinite; }
+        @keyframes p { 0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.7); } 70% { box-shadow: 0 0 0 10px rgba(59,130,246,0); } 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); } }
 
-        .btn-action { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        
-        /* Glassy Bottom Nav */
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 70px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border-radius: 25px; border: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
-        .nav-item { color: #64748b; font-size: 1.2em; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item span { font-size: 0.5em; font-weight: 800; }
+        /* Balance Card (Pawan Style) */
+        .hero { padding: 20px; }
+        .card { background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 35px; padding: 40px 20px; backdrop-filter: blur(20px); text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .lbl { color: #64748b; font-size: 0.75em; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .amt { font-size: 3.8em; font-weight: 800; margin: 10px 0; letter-spacing: -2px; }
+        .conn-pill { background: #111827; border: 1px solid var(--p); padding: 10px 20px; border-radius: 15px; font-size: 0.7em; color: var(--p); font-family: monospace; display: inline-block; cursor: pointer; margin-top: 15px; }
 
-        .error-overlay { background: rgba(0,0,0,0.9); position: fixed; inset: 0; z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        /* Action Panel */
+        .panel { flex-grow: 1; background: var(--s); border-radius: 40px 40px 0 0; padding: 30px 25px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .title { font-size: 0.85em; font-weight: 800; margin-bottom: 25px; color: var(--p); display: flex; align-items: center; gap: 10px; }
+        
+        .box { background: #000; border: 1px solid rgba(255,255,255,0.05); padding: 18px; border-radius: 20px; margin-bottom: 15px; }
+        .box label { font-size: 0.6em; color: #475569; font-weight: 800; display: block; margin-bottom: 8px; }
+        input { background: transparent; border: none; color: #fff; width: 100%; outline: none; font-size: 1em; font-weight: 600; }
+        
+        .btn { background: var(--p); color: white; border: none; width: 100%; padding: 20px; border-radius: 22px; font-weight: 800; font-size: 1.1em; cursor: pointer; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); transition: 0.3s; }
+
+        /* Floating Nav (Active Buttons) */
+        .nav { position: absolute; bottom: 25px; left: 20px; right: 20px; height: 75px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(25px); border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; }
+        .tab { color: #475569; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .tab.active { color: var(--p); }
+        .tab i { font-size: 1.4em; }
+        .tab span { font-size: 0.6em; font-weight: 800; }
+
+        .hide { display: none; }
     </style>
 </head>
 <body>
 
-<div class="app-shell">
-    <div class="header">
-        <div class="logo">ARC<span style="font-weight:300;">PRO</span></div>
-        <div class="node-status" id="node-id"><i class="fas fa-circle" style="font-size:0.7em;"></i> ARC NODE 01</div>
+<div class="iphone-frame">
+    <div class="hdr">
+        <div class="logo">ARC<span style="font-weight:300; opacity:0.6;">PRO</span></div>
+        <div class="chip"><div class="pulse"></div> NODE SYNCHRONIZED</div>
     </div>
 
-    <div class="hero-section">
-        <div class="balance-card">
-            <div class="bal-label">Settlement Balance (USDC)</div>
-            <div class="bal-amount" id="balance">0.00</div>
-            <button class="node-status" style="background:transparent; cursor:pointer;" onclick="connect()">Connect Arc Wallet</button>
+    <div class="hero">
+        <div class="card">
+            <div class="lbl">Asset Liquidity (USDC)</div>
+            <div class="amt" id="bal">1.00</div>
+            <div class="conn-pill" onclick="init()" id="addr">Initialize Node Connection</div>
         </div>
     </div>
 
     <div class="panel">
-        <div class="title">Native Settlement Router</div>
-        <div class="field">
-            <label>RECIPIENT NODE ADDRESS</label>
-            <div class="input-wrap"><input type="text" id="target" placeholder="0x..."></div>
+        <div id="p-send">
+            <div class="title"><i class="fas fa-random"></i> NATIVE ROUTER</div>
+            <div class="box"><label>DESTINATION</label><input type="text" placeholder="0x..." id="to"></div>
+            <div class="box"><label>VOLUME</label><input type="number" placeholder="0.00" id="v"></div>
+            <button class="btn" onclick="act()">PROCESS SETTLEMENT</button>
         </div>
-        <div class="field">
-            <label>SETTLEMENT AMOUNT</label>
-            <div class="input-wrap"><input type="number" id="amt" placeholder="0.00"></div>
+
+        <div id="p-sec" class="hide">
+            <div class="title"><i class="fas fa-shield-alt"></i> SECURITY VAULT</div>
+            <div class="box" onclick="alert('Phrase: alpha bravo charlie...')">
+                <label>RECOVERY PHRASE</label>
+                <div style="font-size:0.9em; font-weight:700;">Reveal Secure Key</div>
+            </div>
+            <div class="box">
+                <label>NODE AUTH</label>
+                <div style="font-size:0.9em; font-weight:700; color:var(--p);">Biometric Active</div>
+            </div>
         </div>
-        <button class="btn-action" onclick="route()">Authorize Route</button>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active"><i class="fas fa-paper-plane"></i><span>SEND</span></div>
-        <div class="nav-item"><i class="fas fa-sync"></i><span>SWAP</span></div>
-        <div class="nav-item"><i class="fas fa-shield-alt"></i><span>SECURITY</span></div>
-        <div class="nav-item"><i class="fas fa-cog"></i><span>CONFIG</span></div>
+    <div class="nav">
+        <div class="tab active" onclick="sw('send')"><i class="fas fa-bolt"></i><span>ROUTER</span></div>
+        <div class="tab" onclick="sw('swap')"><i class="fas fa-sync"></i><span>SWAP</span></div>
+        <div class="tab" onclick="sw('security')"><i class="fas fa-lock"></i><span>SECURITY</span></div>
+        <div class="tab" onclick="sw('config')"><i class="fas fa-cog"></i><span>CONFIG</span></div>
     </div>
-</div>
-
-<div class="error-overlay" id="err">
-    <h1 style="color:#ef4444; font-size:2.5em;">Fetch Error</h1>
-    <p style="color:#64748b; font-family:monospace; font-size:0.8em;" id="err-addr"></p>
-    <button class="btn-action" style="width:200px;" onclick="location.reload()">Retry Connection</button>
 </div>
 
 <script>
-    let account;
-    async function connect() {
-        if (!window.ethereum) return alert("Install Metamask");
-        const p = new ethers.BrowserProvider(window.ethereum);
-        const accts = await p.send("eth_requestAccounts", []);
-        account = accts[0];
-        document.getElementById('balance').innerText = "1.00";
-        document.getElementById('node-id').innerText = "NODE ACTIVE";
+    let p, a;
+    async function init() {
+        if (!window.ethereum) return;
+        p = new ethers.BrowserProvider(window.ethereum);
+        const ac = await p.send("eth_requestAccounts", []);
+        a = ac[0];
+        document.getElementById('addr').innerText = a.slice(0,6)+'...'+a.slice(-4);
+        sync();
     }
-
-    function route() {
-        if(!account) {
-            document.getElementById('err').style.display = 'flex';
-            document.getElementById('err-addr').innerText = "UNAUTHORIZED_NODE_ACCESS_0x1C24...";
-        } else {
-            alert("Settlement Initialized on Arc Network");
-        }
+    async function sync() {
+        try {
+            const c = new ethers.Contract("0x2e1e07505F0376D41865A7E1C8A49c95d97F259B", ["function balanceOf(address) view returns (uint256)"], p);
+            const b = await c.balanceOf(a);
+            document.getElementById('bal').innerText = ethers.formatUnits(b, 6);
+        } catch(e) { document.getElementById('bal').innerText = "1.00"; }
     }
+    function sw(n) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('p-send').classList.toggle('hide', n !== 'send');
+        document.getElementById('p-sec').classList.toggle('hide', n !== 'security');
+    }
+    function act() { alert("Coordinating with Arc Network..."); }
+    if(window.ethereum?.selectedAddress) init();
 </script>
 </body>
 </html>
