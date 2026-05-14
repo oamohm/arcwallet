@@ -6,8 +6,9 @@ Arc Pro Wallet is a high-performance, non-custodial interface designed for the a
 
 ## 🚀 Key Features
 - **ERC-20 Optimization:** Native support for USDC settlement on Arc Testnet.
+- **Multi-Functional Interface:** Integrated tabs for Send, Swap, Pool, and Bridge.
+- **Network Awareness:** Automatic Arc Testnet validation and switching.
 - **Agentic Ready:** Structured for future autonomous agent-to-agent transactions.
-- **Zero-Friction:** Optimized routing for high-speed value transfer.
 
 ## 🛠 Tech Stack
 - **Engine:** Ethers.js v6 (Unified Provider)
@@ -15,8 +16,8 @@ Arc Pro Wallet is a high-performance, non-custodial interface designed for the a
 - **Network:** Arc L1 (by Circle)
 
 ## 📦 Deployment
-Deploy the `index.html` via Vercel or any static host. Ensure the `USDC_ADDR` is mapped to the current Arc Scan contract address.
-## 📖 Usage
-1. Connect your MetaMask to Arc Testnet.
-2. Select your transaction type (Send, Swap, Pool, or Bridge).
-3. Input the parameters and click "Initialize Settlement".
+Deploy the `index.html` via Vercel or any static host. Ensure the `USDC_ADDR` is mapped to the current Arc Scan contract address for live interaction.
+
+## 🤝 Community
+Building the realization of a decentralized financial infrastructure.
+@buildoncircle @arc
