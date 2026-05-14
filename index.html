@@ -18,8 +18,9 @@
     input, select { width:100%; background:#22222f; border:none; padding:14px; border-radius:12px; color:white; margin:8px 0; font-size:16px; }
     .quick { display:flex; gap:8px; margin:12px 0; }
     .quick button { background:#22222f; flex:1; padding:12px; border-radius:12px; font-size:15px; }
-    .status { color:#eab308; font-weight:500; }
+    .status { color:#eab308; }
     .connected { color:#22c55e !important; }
+    .balance { font-size:28px; font-weight:600; margin:8px 0; }
   </style>
 </head>
 <body>
@@ -40,7 +41,6 @@
       </div>
     </div>
 
-    <!-- SEND ASSET -->
     <div class="card">
       <strong style="display:flex;align-items:center;gap:8px;">↗ SEND ASSET</strong>
       
@@ -62,7 +62,6 @@
       <button onclick="sendUSDC()">Confirm Send</button>
     </div>
 
-    <!-- Ecosystem -->
     <div class="card">
       <strong>ECOSYSTEM & SOCIALS</strong>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;">
@@ -83,7 +82,7 @@
     let provider, signer, userAddress;
 
     const ARC_TESTNET = {
-      chainId: "0x4cef52",        // 5042002
+      chainId: "0x4cef52",
       chainName: "Arc Testnet",
       nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
       rpcUrls: ["https://rpc.testnet.arc.network"],
@@ -96,39 +95,42 @@
       btn.innerText = "Connecting...";
 
       if (!window.ethereum) {
-        alert("MetaMask install karo");
-        resetButton();
+        alert("MetaMask nahi mila. Browser extension install karo.");
+        resetBtn();
         return;
       }
 
       try {
-        // Pehle try switch network
-        try {
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: ARC_TESTNET.chainId }]
-          });
-        } catch (switchError) {
-          if (switchError.code === 4902) { // Chain not added
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [ARC_TESTNET]
-            });
-          } else {
-            throw switchError; // User rejected switch
-          }
-        }
-
-        // Connect accounts
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        // Sirf accounts request pehle (sabse safe)
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
         userAddress = accounts[0];
 
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
 
-        // Update UI
+        // Network check aur switch (background mein)
+        const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
+        if (currentChain !== ARC_TESTNET.chainId) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: ARC_TESTNET.chainId }]
+            });
+          } catch (switchErr) {
+            if (switchErr.code === 4902) {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [ARC_TESTNET]
+              });
+            }
+          }
+        }
+
+        // Success UI update
         btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
-        btn.style.background = "#22c55e";
+        btn.style.backgroundColor = "#22c55e";
         document.getElementById("status").innerText = "Connected";
         document.getElementById("status").classList.add("connected");
 
@@ -136,64 +138,52 @@
 
       } catch (error) {
         console.error(error);
-        if (error.code === 4001 || error.message.includes("rejected")) {
-          alert("Request cancel kar diya. Phir se Connect dabao.");
+        if (error.code === 4001) {
+          alert("Connect request cancel kar diya. Phir se try karo.");
         } else {
-          alert("Connect failed: " + error.message);
+          alert("Error: " + error.message);
         }
-        resetButton();
+        resetBtn();
       }
     }
 
-    function resetButton() {
+    function resetBtn() {
       const btn = document.getElementById("connectBtn");
       btn.disabled = false;
       btn.innerText = "Connect";
-      btn.style.background = "";
+      btn.style.backgroundColor = "";
     }
 
     async function getBalance() {
       if (!provider || !userAddress) return;
       try {
         const bal = await provider.getBalance(userAddress);
-        const usdc = (parseFloat(bal) / 1e6).toFixed(2);
-        document.getElementById("balanceDisplay").innerText = usdc + " USDC";
-      } catch(e) {}
+        const usdcBal = (parseFloat(bal) / 1000000).toFixed(2);
+        document.getElementById("balanceDisplay").innerText = usdcBal + " USDC";
+      } catch(e) { }
     }
 
-    function setAmount(val) {
-      document.getElementById("amount").value = val;
-    }
+    function setAmount(val) { document.getElementById("amount").value = val; }
 
     async function sendUSDC() {
-      if (!signer) {
-        alert("Pehle Connect Wallet karo");
-        return;
-      }
+      if (!signer) { alert("Pehle Connect karo"); return; }
       const to = document.getElementById("recipient").value.trim();
-      const amount = document.getElementById("amount").value;
+      const amt = document.getElementById("amount").value;
 
-      if (!to || !ethers.utils.isAddress(to)) {
-        alert("Sahih recipient address daalo");
-        return;
-      }
-      if (parseFloat(amount) <= 0) {
-        alert("Amount daalo");
-        return;
-      }
+      if (!to || !ethers.utils.isAddress(to)) { alert("Sahih address daalo"); return; }
+      if (parseFloat(amt) <= 0) { alert("Amount daalo"); return; }
 
       try {
         const tx = await signer.sendTransaction({
           to: to,
-          value: ethers.utils.parseUnits(amount, 6)
+          value: ethers.utils.parseUnits(amt, 6)
         });
-        alert(`Transaction sent!\nHash: ${tx.hash}\n\nExplorer pe check karo.`);
+        alert(`Tx bheji gayi!\nHash: ${tx.hash}`);
       } catch (e) {
-        alert("Transaction failed: " + e.message);
+        alert("Tx fail: " + e.message);
       }
     }
 
-    // Auto refresh on change
     window.ethereum?.on('accountsChanged', () => window.location.reload());
     window.ethereum?.on('chainChanged', () => window.location.reload());
   </script>
