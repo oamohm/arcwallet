@@ -3,126 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcpro | Professional Node</title>
+    <title>Arc Pro | Universal Settlement Node</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <style>
-        :root { --primary: #3b82f6; --bg: #030508; --card: rgba(17, 24, 39, 0.8); --text: #f8fafc; --accent: #10b981; --border: rgba(255, 255, 255, 0.08); }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        .app-container { width: 100%; max-width: 400px; }
+        :root { --primary: #3b82f6; --bg: #020408; --card: rgba(15, 23, 42, 0.7); --text: #f8fafc; --border: rgba(255, 255, 255, 0.08); }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 15px; overflow-x: hidden; }
         
-        /* Header & Identity */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
-        .logo { font-weight: 800; font-size: 1.3em; letter-spacing: -0.5px; }
-        .status-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px var(--accent); }
-        .node-tag { font-size: 0.65em; background: rgba(16, 185, 129, 0.1); color: var(--accent); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .glass-container { width: 100%; max-width: 420px; animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Main Display Card */
-        .card { background: var(--card); border-radius: 28px; padding: 24px; border: 1px solid var(--border); margin-bottom: 12px; backdrop-filter: blur(12px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .balance-label { color: #64748b; font-size: 0.75em; font-weight: 700; letter-spacing: 1px; margin-bottom: 5px; }
-        .balance-amount { font-size: 3.2em; font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; }
-        .wallet-pill { background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 12px; font-size: 0.7em; color: #94a3b8; font-family: monospace; display: inline-block; cursor: pointer; }
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 25px 5px; }
+        .brand { font-weight: 900; font-size: 1.4em; letter-spacing: -1px; text-transform: uppercase; }
+        .node-status { font-size: 0.65em; background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.2); display: flex; align-items: center; gap: 6px; }
+        .dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 8px var(--primary); }
 
-        /* Navigation Tabs */
-        .nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .nav-item { background: #111827; border: 1px solid var(--border); border-radius: 16px; padding: 12px 5px; cursor: pointer; text-align: center; transition: 0.3s; }
-        .nav-item.active { background: var(--primary); border-color: var(--primary); }
-        .nav-item span { font-size: 0.65em; font-weight: 700; color: #94a3b8; }
+        /* Portfolio Card */
+        .main-card { background: var(--card); border-radius: 32px; padding: 30px 20px; border: 1px solid var(--border); backdrop-filter: blur(20px); text-align: center; margin-bottom: 15px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .bal-label { color: #64748b; font-size: 0.7em; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        .bal-value { font-size: 3.5em; font-weight: 800; margin: 10px 0; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .address-box { background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 12px; font-family: monospace; font-size: 0.7em; color: #94a3b8; cursor: pointer; border: 1px solid var(--border); display: inline-block; }
+
+        /* Tab Navigation */
+        .nav-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .nav-item { background: #0f172a; border: 1px solid var(--border); padding: 14px 5px; border-radius: 18px; cursor: pointer; text-align: center; transition: 0.3s; }
+        .nav-item.active { background: var(--primary); border-color: var(--primary); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
+        .nav-item span { font-size: 0.6em; font-weight: 800; color: #475569; }
         .nav-item.active span { color: white; }
 
-        /* Form Inputs */
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.7em; color: #64748b; margin-bottom: 8px; margin-left: 5px; font-weight: 600; }
-        input, select { width: 100%; background: #000; border: 1px solid var(--border); padding: 16px; border-radius: 16px; color: white; box-sizing: border-box; font-size: 0.95em; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(59, 130, 246, 0.1); }
+        /* Action Panel */
+        .action-panel { background: var(--card); border-radius: 28px; padding: 24px; border: 1px solid var(--border); min-height: 280px; }
+        .panel-title { font-size: 0.85em; font-weight: 700; margin-bottom: 20px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        
+        input { width: 100%; background: #000; border: 1px solid var(--border); padding: 18px; border-radius: 16px; color: white; box-sizing: border-box; margin-bottom: 12px; font-size: 0.9em; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--primary); }
+        .btn-exec { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-exec:active { transform: scale(0.98); }
 
-        /* Buttons */
-        .btn-action { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 1em; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
-        .btn-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
-
-        /* Menu List for Settings/Security */
-        .menu-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 14px; margin-bottom: 8px; cursor: pointer; border: 1px solid transparent; }
-        .menu-row:hover { border-color: var(--primary); background: rgba(255,255,255,0.05); }
+        /* Menu Rows */
+        .menu-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 16px; margin-bottom: 8px; border: 1px solid transparent; cursor: pointer; }
+        .menu-row:hover { border-color: var(--primary); }
         .menu-label { font-size: 0.85em; font-weight: 500; }
-        .menu-val { font-size: 0.75em; color: var(--primary); font-weight: 600; }
+        .menu-val { font-size: 0.75em; color: #64748b; font-weight: 600; }
 
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
+<div class="glass-container">
     <div class="header">
-        <div class="logo">ARC<span style="color:var(--primary)">FLOW</span></div>
-        <div class="node-tag"><span class="status-dot"></span> NODE ACTIVE</div>
+        <div class="brand">ARC<span style="font-weight:300; opacity:0.7;">PRO</span></div>
+        <div class="node-status"><div class="dot"></div> ARC NODE 01</div>
     </div>
 
-    <div class="card" style="text-align: center;">
-        <div class="balance-label">SETTLEMENT BALANCE (USDC)</div>
-        <div class="balance-amount" id="mainBal">1.00</div>
-        <div class="wallet-pill" onclick="connect()" id="walletId">Link Arc Wallet</div>
+    <div class="main-card">
+        <div class="bal-label">Settlement Balance (USDC)</div>
+        <div class="bal-value" id="dispBal">1.00</div>
+        <div class="address-box" id="connBtn" onclick="connect()">Connect Wallet</div>
     </div>
 
-    <div class="nav-grid">
-        <div class="nav-item active" id="tab-send" onclick="switchTab('send')"><span>SEND</span></div>
-        <div class="nav-item" id="tab-swap" onclick="switchTab('swap')"><span>SWAP</span></div>
-        <div class="nav-item" id="tab-security" onclick="switchTab('security')"><span>SECURITY</span></div>
-        <div class="nav-item" id="tab-settings" onclick="switchTab('settings')"><span>CONFIG</span></div>
+    <div class="nav-bar">
+        <div class="nav-item active" id="btn-send" onclick="tab('send')"><span>SEND</span></div>
+        <div class="nav-item" id="btn-swap" onclick="tab('swap')"><span>SWAP</span></div>
+        <div class="nav-item" id="btn-security" onclick="tab('security')"><span>SECURITY</span></div>
+        <div class="nav-item" id="btn-config" onclick="tab('config')"><span>CONFIG</span></div>
     </div>
 
-    <div class="card">
-        <h4 id="panelTitle" style="margin: 0 0 20px 0; font-size: 0.9em; letter-spacing: 0.5px;">NATIVE ROUTER</h4>
+    <div class="action-panel">
+        <div class="panel-title" id="panelTitle">NATIVE SETTLEMENT</div>
         
         <div id="view-send">
-            <div class="input-group">
-                <label>RECIPIENT ADDRESS</label>
-                <input type="text" id="target" placeholder="0x...">
-            </div>
-            <div class="input-group">
-                <label>AMOUNT (USDC)</label>
-                <input type="number" id="amt" placeholder="0.00">
-            </div>
-            <button class="btn-action" onclick="runTx()">Route Transaction</button>
+            <input type="text" placeholder="Recipient (0x...)" id="target">
+            <input type="number" placeholder="Amount" id="amt">
+            <button class="btn-exec" onclick="process()">Authorize Route</button>
         </div>
 
         <div id="view-swap" class="hidden">
-            <div class="input-group">
-                <label>FROM</label>
-                <select><option>USDC (Arc Flow)</option></select>
-            </div>
-            <div class="input-group">
-                <label>TO</label>
-                <select><option>ETH (Base)</option></select>
-            </div>
-            <button class="btn-action">Authorize Swap</button>
+            <input type="text" value="USDC (Arc)" disabled style="opacity:0.5;">
+            <div style="text-align:center; margin-bottom:10px; font-size:0.8em; color:var(--primary);">↓</div>
+            <input type="text" value="ETH (Base)" disabled style="opacity:0.5;">
+            <button class="btn-exec">Initialize Swap</button>
         </div>
 
         <div id="view-security" class="hidden">
-            <div class="menu-row" onclick="alert('Phrase: alpha bravo charlie delta echo foxtrot...')">
+            <div class="menu-row" onclick="alert('Alpha Bravo Charlie Delta...')">
                 <span class="menu-label">Recovery Phrase</span>
                 <span class="menu-val">Reveal</span>
             </div>
             <div class="menu-row">
-                <span class="menu-label">Biometric Unlock</span>
+                <span class="menu-label">Biometric ID</span>
                 <span class="menu-val">Active</span>
             </div>
-            <div class="menu-row" style="color: #ef4444;">
-                <span class="menu-label">Delete All Data</span>
+            <div class="menu-row" style="color:#ef4444;">
+                <span class="menu-label">Reset Private Key</span>
                 <span class="menu-val">!</span>
             </div>
         </div>
 
-        <div id="view-settings" class="hidden">
+        <div id="view-config" class="hidden">
             <div class="menu-row">
-                <span class="menu-label">Network RPC</span>
+                <span class="menu-label">Active Chain</span>
                 <span class="menu-val">Arc Testnet</span>
             </div>
             <div class="menu-row">
-                <span class="menu-label">Currency</span>
-                <span class="menu-val">USD</span>
+                <span class="menu-label">RPC Endpoint</span>
+                <span class="menu-val">Synced</span>
             </div>
             <div class="menu-row">
-                <span class="menu-label">Node Status</span>
-                <span class="menu-val">Synced</span>
+                <span class="menu-label">Gas Strategy</span>
+                <span class="menu-val">Aggressive</span>
             </div>
         </div>
     </div>
@@ -131,15 +121,14 @@
 <script>
     let provider, signer, account;
     const USDC_ADDR = "0x2e1e07505F0376D41865A7E1C8A49c95d97F259B";
-    const ABI = ["function balanceOf(address) view returns (uint256)", "function transfer(address, uint256) returns (bool)"];
+    const ABI = ["function balanceOf(address) view returns (uint256)"];
 
     async function connect() {
-        if (!window.ethereum) return alert("Please install MetaMask");
+        if (!window.ethereum) return alert("Install MetaMask");
         provider = new ethers.BrowserProvider(window.ethereum);
         const accounts = await provider.send("eth_requestAccounts", []);
         account = accounts[0];
-        signer = await provider.getSigner();
-        document.getElementById('walletId').innerText = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById('connBtn').innerText = account.slice(0,6) + "..." + account.slice(-4);
         sync();
     }
 
@@ -147,30 +136,26 @@
         try {
             const contract = new ethers.Contract(USDC_ADDR, ABI, provider);
             const b = await contract.balanceOf(account);
-            document.getElementById('mainBal').innerText = ethers.formatUnits(b, 6);
-        } catch (e) { document.getElementById('mainBal').innerText = "1.00"; }
+            document.getElementById('dispBal').innerText = ethers.formatUnits(b, 6);
+        } catch (e) { document.getElementById('dispBal').innerText = "1.00"; }
     }
 
-    function switchTab(name) {
-        // Update Buttons
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('tab-' + name).classList.add('active');
+    function tab(name) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('btn-' + name).classList.add('active');
         
-        // Update Title
-        const titles = {send: 'NATIVE ROUTER', swap: 'ASSET CONVERSION', security: 'PRIVACY VAULT', settings: 'SYSTEM CONFIG'};
-        document.getElementById('panelTitle').innerText = titles[name];
-
-        // Update Views
-        document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
+        document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
         document.getElementById('view-' + name).classList.remove('hidden');
+
+        const labels = {send: 'NATIVE SETTLEMENT', swap: 'LIQUIDITY SWAP', security: 'SECURITY VAULT', config: 'NODE CONFIGURATION'};
+        document.getElementById('panelTitle').innerText = labels[name];
     }
 
-    function runTx() {
-        alert("Transaction Initialized on Arc Node");
+    function process() {
+        alert("Coordinating with Arc Node...");
     }
 
     if(window.ethereum && window.ethereum.selectedAddress) connect();
 </script>
-
 </body>
 </html>
