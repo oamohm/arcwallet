@@ -1,143 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arc pro wallet</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <style>
-        :root { --primary: #3b82f6; --bg: #0b0f1a; --card: #161e2d; --text: #f1f5f9; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding: 15px; margin: 0; display: flex; flex-direction: column; align-items: center; }
-        .app-container { width: 100%; max-width: 450px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
-        .card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #2d3748; margin-bottom: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .balance-title { color: #94a3b8; font-size: 0.9em; text-align: center; }
-        .balance-value { font-size: 3em; font-weight: 800; text-align: center; margin: 10px 0; color: #fff; }
-        .btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; width: 100%; font-weight: 700; cursor: pointer; font-size: 1em; transition: 0.3s; }
-        .btn:hover { background: #2563eb; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #2d3748; background: #0b0f1a; color: white; box-sizing: border-box; outline: none; }
-        .status { font-size: 0.75em; text-align: center; color: #10b981; margin-top: 10px; }
-        .activity-table { width: 100%; margin-top: 15px; font-size: 0.85em; }
-        .activity-table td { padding: 12px 0; border-bottom: 1px solid #2d3748; }
-        .badge { background: #1e293b; padding: 4px 10px; border-radius: 8px; font-size: 0.8em; color: var(--primary); }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ArcPro Wallet</title>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.1/dist/ethers.umd.min.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#050816;
+    color:white;
+}
+
+.container{
+    max-width:420px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:#0c1224;
+    border:1px solid #1e2a52;
+    border-radius:20px;
+    padding:20px;
+    margin-top:20px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#3154ff;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    background:#09101f;
+    border:1px solid #1c2b52;
+    border-radius:12px;
+    color:white;
+    box-sizing:border-box;
+}
+
+.balance{
+    color:#00ff95;
+    font-size:18px;
+    margin-top:10px;
+}
+
+.title{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.network{
+    color:#8ca0ff;
+    margin-top:8px;
+}
+</style>
 </head>
+
 <body>
 
-<div class="app-container">
-    <div class="header">
-        <h2 style="margin:0; font-style: italic;">Arc pro <span style="color:var(--primary)">wallet</span></h2>
-        <button class="btn" id="connectBtn" onclick="connectWallet()" style="width:auto; padding: 8px 16px; font-size: 0.8em;">Connect</button>
-    </div>
+<div class="container">
 
-    <div class="card">
-        <div class="balance-title">Arc Testnet Assets</div>
-        <div class="balance-value" id="myBalance">0.00</div>
-        <div style="text-align:center;"><span class="badge">NATIVE USDC</span></div>
-        <div class="status" id="walletAddr">Wallet Disconnected</div>
-    </div>
+<div class="card">
+<div class="title">ArcPro Wallet</div>
+<div class="network">Arbitrum Sepolia</div>
 
-    <div class="card">
-        <h4 style="margin:0 0 10px 0;">Transfer & Route</h4>
-        <input type="text" id="toAddr" placeholder="Recipient Address (0x...)">
-        <input type="number" id="sendAmt" placeholder="Amount (USDC)">
-        <button class="btn" onclick="sendUSDC()">Process Transfer</button>
-    </div>
+<button onclick="connectWallet()">Connect Wallet</button>
 
-    <div class="card">
-        <h4 style="margin:0 0 10px 0;">Activity Ledger</h4>
-        <table class="activity-table">
-            <tbody id="ledgerBody">
-                <tr><td style="color:#94a3b8; text-align:center;">Waiting for transactions...</td></tr>
-            </tbody>
-        </table>
-    </div>
+<div id="walletAddress" style="margin-top:15px;"></div>
+
+<div class="balance" id="balance">
+Balance: 0 USDC
+</div>
+</div>
+
+<div class="card">
+
+<h3>Send USDC</h3>
+
+<input id="recipient" placeholder="Recipient Address">
+
+<input id="amount" placeholder="Amount">
+
+<button onclick="sendUSDC()" style="margin-top:15px;">
+Confirm Send
+</button>
+
+<div id="status" style="margin-top:15px;"></div>
+
+</div>
+
 </div>
 
 <script>
-let provider, signer, myAddress;
 
-const RPC_URL = "https://arc-testnet.drpc.org"; 
-const CHAIN_ID = "0x4cef52"; 
-const USDC_ADDRESS = "0x3600000000000000000000000000000000000000"; 
-const USDC_ABI = [
-    "function balanceOf(address) view returns (uint256)",
-    "function decimals() view returns (uint8)",
-    "function transfer(address, uint256) returns (bool)"
+let provider;
+let signer;
+let userAddress;
+
+const usdcAddress = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
+
+const usdcABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "function transfer(address to, uint amount) returns (bool)",
+    "function decimals() view returns (uint8)"
 ];
 
-async function connectWallet() {
-    if (window.ethereum) {
-        try {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: CHAIN_ID }],
-                });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: CHAIN_ID,
-                            chainName: 'Arc Testnet',
-                            rpcUrls: [RPC_URL],
-                            nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                            blockExplorerUrls: null
-                        }],
-                    });
-                }
-            }
+async function connectWallet(){
 
-            provider = new ethers.BrowserProvider(window.ethereum);
-            const accounts = await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            myAddress = accounts[0];
-            
-            document.getElementById('walletAddr').innerText = "Linked: " + myAddress.slice(0,6) + "..." + myAddress.slice(-4);
-            document.getElementById('connectBtn').innerText = "Connected";
-            
-            await updateBalance();
-        } catch (e) { alert("Please approve connection in MetaMask"); }
-    } else { alert("Open in MetaMask Browser App"); }
+    if(!window.ethereum){
+        alert("MetaMask not found");
+        return;
+    }
+
+    await window.ethereum.request({
+        method:"eth_requestAccounts"
+    });
+
+    provider = new ethers.BrowserProvider(window.ethereum);
+
+    signer = await provider.getSigner();
+
+    userAddress = await signer.getAddress();
+
+    document.getElementById("walletAddress").innerHTML =
+        "Wallet: " + userAddress;
+
+    loadBalance();
 }
 
-async function updateBalance() {
-    if (!myAddress) return;
-    try {
-        const contract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
-        const [bal, dec] = await Promise.all([
-            contract.balanceOf(myAddress),
-            contract.decimals()
-        ]);
-        const formatted = ethers.formatUnits(bal, dec);
-        document.getElementById('myBalance').innerText = parseFloat(formatted).toFixed(2);
-    } catch (e) { console.error("Balance Error", e); }
+async function loadBalance(){
+
+    const contract = new ethers.Contract(
+        usdcAddress,
+        usdcABI,
+        provider
+    );
+
+    const balance = await contract.balanceOf(userAddress);
+
+    const formatted = ethers.formatUnits(balance,6);
+
+    document.getElementById("balance").innerHTML =
+        "Balance: " + formatted + " USDC";
 }
 
-async function sendUSDC() {
-    const to = document.getElementById('toAddr').value;
-    const amt = document.getElementById('sendAmt').value;
-    if (!signer || !to || !amt) return alert("Fill details first");
+async function sendUSDC(){
 
-    try {
-        const contract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, signer);
-        const dec = await contract.decimals();
-        const tx = await contract.transfer(to, ethers.parseUnits(amt.toString(), dec));
-        
-        addLedger("Sent", amt);
-        alert("Transaction Sent! Hash: " + tx.hash);
+    try{
+
+        const recipient =
+            document.getElementById("recipient").value;
+
+        const amount =
+            document.getElementById("amount").value;
+
+        const contract = new ethers.Contract(
+            usdcAddress,
+            usdcABI,
+            signer
+        );
+
+        const tx = await contract.transfer(
+            recipient,
+            ethers.parseUnits(amount,6)
+        );
+
+        document.getElementById("status").innerHTML =
+            "Transaction Pending...";
+
         await tx.wait();
-        updateBalance();
-    } catch (e) { alert("Error: " + e.message); }
+
+        document.getElementById("status").innerHTML =
+            "Transfer Successful";
+
+        loadBalance();
+
+    }catch(err){
+
+        console.log(err);
+
+        document.getElementById("status").innerHTML =
+            "Transaction Failed";
+
+    }
 }
 
-function addLedger(type, amt) {
-    const ledger = document.getElementById('ledgerBody');
-    if(ledger.innerText.includes("Waiting")) ledger.innerHTML = "";
-    const row = `<tr><td>${new Date().toLocaleTimeString()}</td><td><b>${type}</b></td><td style="text-align:right">${amt} USDC</td></tr>`;
-    ledger.insertAdjacentHTML('afterbegin', row);
-}
 </script>
+
 </body>
 </html>
