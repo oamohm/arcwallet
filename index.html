@@ -17,6 +17,7 @@
     input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
     .balance { font-size:32px; font-weight:700; }
     .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
+    .success { color:#22c55e; }
   </style>
 </head>
 <body>
@@ -27,7 +28,7 @@
     </header>
 
     <div class="card">
-      <div style="display:flex;justify-content:space-between;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
           <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
           <div id="balanceDisplay" class="balance">0.00 USDC</div>
@@ -37,7 +38,7 @@
     </div>
 
     <div class="card">
-      <strong>↗ Send USDC</strong>
+      <strong>↗ Send USDC (Native)</strong>
       <input type="text" id="recipient" placeholder="Recipient 0x..." />
       <div style="margin:12px 0 8px;">Amount (USDC)</div>
       <input type="number" id="amount" value="5" step="0.01" />
@@ -59,8 +60,8 @@
       btn.innerText = "Connecting...";
 
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userAddress = accounts[0];
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        userAddress = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
 
@@ -68,7 +69,7 @@
         btn.style.background = "#22c55e";
         getBalance();
       } catch (e) {
-        alert("Wallet connect failed: " + e.message);
+        alert("Connect failed: " + e.message);
         btn.disabled = false;
         btn.innerText = "Connect Wallet";
       }
@@ -81,7 +82,7 @@
     }
 
     async function sendUSDC() {
-      if (!signer) return alert("Connect wallet first");
+      if (!signer) return alert("Pehle Connect karo");
 
       const to = document.getElementById("recipient").value.trim();
       const amt = document.getElementById("amount").value;
@@ -92,20 +93,20 @@
         const tx = await signer.sendTransaction({
           to: to,
           value: ethers.utils.parseUnits(amt, 18),
-          gasLimit: 100000
+          gasLimit: 80000
         });
 
-        alert(`✅ Transaction Sent Successfully!\n\nTx Hash: ${tx.hash}\n\nCheck Explorer → https://testnet.arcscan.app/tx/${tx.hash}`);
+        alert(`✅ Transaction Sent!\n\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
 
         const div = document.createElement("div");
         div.className = "tx";
-        div.innerHTML = `✓ ${amt} USDC Sent to ${to.slice(0,8)}...<br><small>${new Date().toLocaleTimeString()}</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View on Explorer</a>`;
+        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
         document.getElementById("txHistory").prepend(div);
 
         setTimeout(getBalance, 4000);
       } catch (e) {
         console.error(e);
-        alert("Transaction Error: " + (e.message || "Try smaller amount or check gas in wallet"));
+        alert("Transaction Error:\n" + e.message + "\n\nTry 1 USDC ya Brave Wallet restart karo");
       }
     }
   </script>
