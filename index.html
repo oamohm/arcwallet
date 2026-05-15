@@ -179,13 +179,13 @@ Connect Wallet
 <div>
 
 <div class="label">
-WALLET BALANCE
+ARC TESTNET
 </div>
 
 <div
 class="balance"
 id="balanceDisplay">
-0.00 ETH
+0.0000 ETH
 </div>
 
 </div>
@@ -285,9 +285,6 @@ provider.getSigner();
 userAddress =
 await signer.getAddress();
 
-const network =
-await provider.getNetwork();
-
 document.getElementById(
 "connectBtn"
 ).innerHTML =
@@ -308,7 +305,7 @@ userAddress;
 document.getElementById(
 "networkStatus"
 ).innerHTML =
-network.name;
+"Arc Testnet";
 
 loadBalance();
 
@@ -358,6 +355,14 @@ document.getElementById(
 async function sendTransaction(){
 
 try{
+
+if(!signer){
+
+alert("Connect Wallet First");
+
+return;
+
+}
 
 const recipient =
 document.getElementById(
