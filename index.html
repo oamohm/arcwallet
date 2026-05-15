@@ -13,15 +13,13 @@
         header { display:flex; justify-content:space-between; align-items:center; padding:20px; }
         .logo { font-size:30px; font-weight:700; }
         .connectBtn { background:#3154ff; padding:14px 18px; border:none; border-radius:16px; color:white; font-weight:600; cursor:pointer; }
-        .card { background:#0d1324; margin:16px; padding:20px; border-radius:24px; border:1px solid #1f2d52; }
+        .card { background:#0d1324; margin:16px; padding:24px; border-radius:24px; border:1px solid #1f2d52; }
         .label { font-size:13px; color:#8ea2ff; margin-bottom:8px; }
         .balance { font-size:38px; font-weight:700; margin-top:5px; }
         .network { color:#22c55e; font-size:14px; font-weight:600; }
-        input { width:100%; margin-top:14px; padding:16px; border:none; border-radius:16px; background:#151d33; color:white; font-size:15px; }
+        input { width:100%; margin-top:14px; padding:16px; border:none; border-radius:16px; background:#151d33; color:white; font-size:15px; outline:none; }
         .sendBtn { width:100%; margin-top:18px; padding:16px; border:none; border-radius:16px; background:#3b82f6; color:white; font-size:16px; font-weight:600; cursor:pointer; }
-        .status { margin-top:16px; font-size:14px; color:#8ea2ff; }
-        .tx { background:#151d33; padding:14px; border-radius:16px; margin-top:12px; font-size:14px; }
-        .success { color:#22c55e; } .failed { color:#ef4444; }
+        .status { margin-top:16px; font-size:13px; color:#8ea2ff; text-align:center; }
     </style>
 </head>
 <body>
@@ -35,20 +33,20 @@
             <div><div class="label">ARC TESTNET</div><div class="balance" id="balanceDisplay">0.00 USDC</div></div>
             <div class="network" id="networkStatus">Disconnected</div>
         </div>
-        <div id="walletAddress" style="font-size:12px; margin-top:10px; color:#8ea2ff;"></div>
+        <div id="walletAddress" style="font-size:11px; margin-top:12px; color:#4e66a3;">Connect to see address</div>
     </div>
     <div class="card">
-        <div style="font-size:18px;font-weight:600;">↗ Send Transaction</div>
+        <div style="font-size:16px;font-weight:600;">↗ Send USDC</div>
         <input id="recipient" placeholder="Recipient 0x..." />
         <input id="amount" placeholder="Amount (e.g. 1)" type="number" step="0.01" />
-        <button class="sendBtn" onclick="sendUSDC()">Confirm Send</button>
-        <div class="status" id="status">Pehle wallet connect karein</div>
+        <button class="sendBtn" id="sendBtn" onclick="sendUSDC()">Confirm Send</button>
+        <div class="status" id="status">Waiting for connection...</div>
     </div>
-    <div class="card"><strong>Recent Transactions</strong><div id="txHistory"></div></div>
 </div>
 
 <script>
 let provider, signer, userAddress;
+// ye arc testnet ka updated usdc contract hai
 const USDC_ADDRESS = "0x85Bb410B9cB937340CdaA2e3B3Da12C55eF2A67"; 
 const USDC_ABI = [
     "function balanceOf(address owner) view returns (uint256)",
@@ -57,43 +55,60 @@ const USDC_ABI = [
 ];
 
 async function connectWallet() {
-    if(!window.ethereum) return alert("Brave Wallet use karein");
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    signer = provider.getSigner();
-    userAddress = await signer.getAddress();
-    document.getElementById("connectBtn").innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
-    document.getElementById("networkStatus").innerText = "Arc Testnet";
-    document.getElementById("status").innerText = "Wallet Connected";
-    loadBalance();
+    if(!window.ethereum) return alert("Brave ya MetaMask use karein");
+    try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        
+        document.getElementById("connectBtn").innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+        document.getElementById("walletAddress").innerText = userAddress;
+        document.getElementById("networkStatus").innerText = "Arc Testnet";
+        document.getElementById("status").innerText = "Wallet Connected ✅";
+        
+        loadBalance();
+    } catch(e) { console.error(e); }
 }
 
 async function loadBalance() {
+    if(!userAddress) return;
     try {
         const contract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
-        const [bal, decimals] = await Promise.all([contract.balanceOf(userAddress), contract.decimals()]);
-        document.getElementById("balanceDisplay").innerText = ethers.utils.formatUnits(bal, decimals) + " USDC";
-    } catch(e) { console.log(e); }
+        // arc testnet par decimals 18 ya 6 ho sakte hain, ye auto-detect karega
+        const [rawBal, decimals] = await Promise.all([
+            contract.balanceOf(userAddress),
+            contract.decimals().catch(() => 18)
+        ]);
+        
+        const formattedBal = ethers.utils.formatUnits(rawBal, decimals);
+        document.getElementById("balanceDisplay").innerText = Number(formattedBal).toFixed(2) + " USDC";
+    } catch(e) {
+        console.error("balance error:", e);
+        document.getElementById("balanceDisplay").innerText = "0.00 USDC";
+    }
 }
 
 async function sendUSDC() {
-    try {
-        const to = document.getElementById("recipient").value;
-        const amt = document.getElementById("amount").value;
-        if(!ethers.utils.isAddress(to)) return alert("Sahi address daalein");
+    if(!signer) return alert("Pehle connect karein");
+    const to = document.getElementById("recipient").value;
+    const amt = document.getElementById("amount").value;
+    
+    if(!ethers.utils.isAddress(to)) return alert("Address sahi nahi hai");
 
-        document.getElementById("status").innerText = "Confirming in Brave...";
+    try {
+        document.getElementById("status").innerText = "Confirming in wallet...";
         const contract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, signer);
+        const decimals = await contract.decimals().catch(() => 18);
         
-        // Arc USDC usually uses 18 decimals
-        const tx = await contract.transfer(to, ethers.utils.parseUnits(amt, 18));
+        const tx = await contract.transfer(to, ethers.utils.parseUnits(amt, decimals));
         
-        document.getElementById("status").innerText = "Pending...";
+        document.getElementById("status").innerText = "Transaction Pending...";
         await tx.wait();
-        document.getElementById("status").innerText = "Transaction Success!";
+        document.getElementById("status").innerText = "Sent Successfully!";
         loadBalance();
     } catch(e) {
-        document.getElementById("status").innerText = "Transaction Failed";
+        document.getElementById("status").innerText = "Transaction Failed ✕";
         console.error(e);
     }
 }
