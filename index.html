@@ -11,12 +11,13 @@
     body { font-family: 'Inter', sans-serif; background:#0a0a0f; color:#e0e0ff; }
     .container { max-width:480px; margin:0 auto; background:#111118; min-height:100vh; }
     header { padding:20px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #22222f; }
-    .logo { font-size:24px; font-weight:700; }
+    .logo { font-size:24px; font-weight:700; letter-spacing:-0.5px; }
     .card { background:#1a1a24; margin:16px; border-radius:20px; padding:20px; }
     button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:16px; width:100%; font-weight:600; font-size:16px; cursor:pointer; }
     input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
     .balance { font-size:32px; font-weight:700; }
     .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
+    .success { color:#22c55e; }
   </style>
 </head>
 <body>
@@ -47,6 +48,10 @@
     <div class="card">
       <strong>Recent Transactions</strong>
       <div id="txHistory" style="margin-top:12px;"></div>
+    </div>
+
+    <div style="text-align:center;padding:20px;color:#666;font-size:13px;">
+      Built by @Bhupendrxsingh • Less noise, more signal
     </div>
   </div>
 
@@ -92,20 +97,20 @@
         const tx = await signer.sendTransaction({
           to: to,
           value: ethers.utils.parseUnits(amt, 18),
-          gasLimit: 100000
+          gasLimit: 80000
         });
 
-        alert(`✅ Transaction Sent!\n\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
+        alert(`✅ Transaction Sent Successfully!\n\nHash: ${tx.hash}\n\nView: https://testnet.arcscan.app/tx/${tx.hash}`);
 
         const div = document.createElement("div");
         div.className = "tx";
-        div.innerHTML = `✓ ${amt} USDC Sent<br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
+        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
         document.getElementById("txHistory").prepend(div);
 
         setTimeout(getBalance, 4000);
       } catch (e) {
         console.error(e);
-        alert("Error: " + e.message + "\n\n1. Small amount (1 USDC) try karo\n2. Brave Wallet restart karo\n3. Gas manually low rakhne ki koshish karo");
+        alert("Transaction Failed:\n" + e.message + "\n\nTips:\n1. Amount 1 USDC rakho\n2. Brave Wallet restart karo\n3. MetaMask try karo");
       }
     }
   </script>
