@@ -17,7 +17,6 @@
     input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
     .balance { font-size:32px; font-weight:700; }
     .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
-    .success { color:#22c55e; }
   </style>
 </head>
 <body>
@@ -28,7 +27,7 @@
     </header>
 
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;justify-content:space-between;">
         <div>
           <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
           <div id="balanceDisplay" class="balance">0.00 USDC</div>
@@ -38,10 +37,10 @@
     </div>
 
     <div class="card">
-      <strong>↗ Send USDC (Native)</strong>
+      <strong>↗ Send USDC</strong>
       <input type="text" id="recipient" placeholder="Recipient 0x..." />
       <div style="margin:12px 0 8px;">Amount (USDC)</div>
-      <input type="number" id="amount" value="5" step="0.01" />
+      <input type="number" id="amount" value="1" step="0.01" />
       <button onclick="sendUSDC()">Confirm Send</button>
     </div>
 
@@ -93,20 +92,20 @@
         const tx = await signer.sendTransaction({
           to: to,
           value: ethers.utils.parseUnits(amt, 18),
-          gasLimit: 80000
+          gasLimit: 100000
         });
 
         alert(`✅ Transaction Sent!\n\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
 
         const div = document.createElement("div");
         div.className = "tx";
-        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
+        div.innerHTML = `✓ ${amt} USDC Sent<br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
         document.getElementById("txHistory").prepend(div);
 
         setTimeout(getBalance, 4000);
       } catch (e) {
         console.error(e);
-        alert("Transaction Error:\n" + e.message + "\n\nTry 1 USDC ya Brave Wallet restart karo");
+        alert("Error: " + e.message + "\n\n1. Small amount (1 USDC) try karo\n2. Brave Wallet restart karo\n3. Gas manually low rakhne ki koshish karo");
       }
     }
   </script>
