@@ -3,9 +3,10 @@
 
 <head>
 
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>ArcPro Wallet</title>
 
@@ -30,7 +31,7 @@ color:white;
 .container{
 max-width:480px;
 margin:auto;
-padding-bottom:50px;
+padding-bottom:40px;
 }
 
 header{
@@ -61,6 +62,7 @@ margin:16px;
 padding:20px;
 border-radius:24px;
 border:1px solid #1f2d52;
+box-shadow:0 0 30px rgba(0,0,0,0.3);
 }
 
 .label{
@@ -177,13 +179,13 @@ Connect Wallet
 <div>
 
 <div class="label">
-ARC USDC
+USDC BALANCE
 </div>
 
 <div
 class="balance"
 id="balanceDisplay">
-0.00 USDC
+0.00
 </div>
 
 </div>
@@ -256,18 +258,42 @@ let provider;
 let signer;
 let userAddress;
 
+const CHAIN_ID = "0xa4b1";
+
 const USDC_ADDRESS =
 "0xaf88d065e77c8cc2239327c5edb3a432268e5831";
 
 const USDC_ABI = [
 
-"function balanceOf(address owner) view returns (uint256)",
+"function balanceOf(address owner) external view returns (uint256)",
 
-"function transfer(address to,uint amount) returns (bool)",
+"function transfer(address to,uint256 value) external returns (bool)",
 
-"function decimals() view returns (uint8)"
+"function decimals() external view returns (uint8)"
 
 ];
+
+async function switchNetwork(){
+
+try{
+
+await window.ethereum.request({
+
+method:"wallet_switchEthereumChain",
+
+params:[{ chainId: CHAIN_ID }]
+
+});
+
+}catch(err){
+
+console.log(err);
+
+alert("Switch network manually to Arbitrum");
+
+}
+
+}
 
 async function connectWallet(){
 
@@ -275,14 +301,18 @@ try{
 
 if(!window.ethereum){
 
-alert("Install MetaMask or Brave Wallet");
+alert("Install Brave Wallet or MetaMask");
 
 return;
 
 }
 
+await switchNetwork();
+
 await window.ethereum.request({
-method:'eth_requestAccounts'
+
+method:"eth_requestAccounts"
+
 });
 
 provider =
@@ -316,9 +346,9 @@ userAddress;
 document.getElementById(
 "networkStatus"
 ).innerHTML =
-"Connected";
+"Arbitrum";
 
-loadBalance();
+await loadBalance();
 
 }catch(err){
 
@@ -344,21 +374,21 @@ provider
 const decimals =
 await contract.decimals();
 
-const raw =
+const rawBalance =
 await contract.balanceOf(
 userAddress
 );
 
-const formatted =
+const balance =
 ethers.utils.formatUnits(
-raw,
+rawBalance,
 decimals
 );
 
 document.getElementById(
 "balanceDisplay"
 ).innerHTML =
-Number(formatted).toFixed(2) +
+Number(balance).toFixed(2) +
 " USDC";
 
 }catch(err){
@@ -377,6 +407,14 @@ document.getElementById(
 async function sendUSDC(){
 
 try{
+
+if(!signer){
+
+alert("Connect Wallet First");
+
+return;
+
+}
 
 const recipient =
 document.getElementById(
@@ -407,7 +445,7 @@ return;
 document.getElementById(
 "status"
 ).innerHTML =
-"Waiting for confirmation...";
+"Waiting for wallet confirmation...";
 
 const contract =
 new ethers.Contract(
@@ -419,16 +457,16 @@ signer
 const decimals =
 await contract.decimals();
 
-const tx =
-await contract.transfer(
-
-recipient,
-
+const parsedAmount =
 ethers.utils.parseUnits(
 amount,
 decimals
-)
+);
 
+const tx =
+await contract.transfer(
+recipient,
+parsedAmount
 );
 
 document.getElementById(
@@ -537,6 +575,16 @@ document.getElementById(
 ).prepend(div);
 
 }
+
+window.ethereum?.on(
+"accountsChanged",
+() => location.reload()
+);
+
+window.ethereum?.on(
+"chainChanged",
+() => location.reload()
+);
 
 </script>
 
