@@ -1,112 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ArcPro Wallet</title>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#050816;
+color:white;
+}
+
+.container{
+max-width:480px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#0d1324;
+padding:20px;
+border-radius:20px;
+margin-top:20px;
+border:1px solid #1f2d52;
+}
+
+.logo{
+font-size:32px;
+font-weight:bold;
+}
+
+button{
+width:100%;
+padding:16px;
+border:none;
+border-radius:16px;
+background:#3154ff;
+color:white;
+font-size:16px;
+margin-top:14px;
+cursor:pointer;
+}
+
+input{
+width:100%;
+padding:16px;
+border:none;
+border-radius:16px;
+background:#151d33;
+color:white;
+margin-top:12px;
+font-size:15px;
+box-sizing:border-box;
+}
+
+.balance{
+font-size:40px;
+font-weight:bold;
+margin-top:8px;
+}
+
+.small{
+font-size:13px;
+color:#8ea2ff;
+margin-top:10px;
+word-break:break-word;
+}
+
+.status{
+margin-top:15px;
+font-size:14px;
+color:#8ea2ff;
+}
+
+.tx{
+background:#151d33;
+padding:14px;
+border-radius:14px;
+margin-top:12px;
+font-size:14px;
+}
+
+.success{
+color:#22c55e;
+}
+
+.failed{
+color:#ef4444;
+}
+
+.pending{
+color:#facc15;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">
+ArcPro
+</div>
+
+<div class="card">
+
+<div style="display:flex;justify-content:space-between;align-items:center;">
+
+<div>
+
+<div style="font-size:13px;color:#8ea2ff;">
+ARC TESTNET
+</div>
+
+<div
+class="balance"
+id="balanceDisplay">
+0.00 USDC
+</div>
+
+</div>
+
+<div id="networkStatus">
+Disconnected
+</div>
+
+</div>
+
+<div
+class="small"
+id="walletAddress">
+Wallet not connected
+</div>
+
+<button onclick="connectWallet()">
+Connect Wallet
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>
+Send USDC
+</h3>
+
+<input
+id="recipient"
+placeholder="Recipient Address">
+
+<input
+id="amount"
+type="number"
+placeholder="Amount">
+
+<button onclick="sendUSDC()">
+Confirm Send
+</button>
+
+<div
+class="status"
+id="status">
+Waiting for wallet connection
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>
+Recent Transactions
+</h3>
+
+<div id="txHistory"></div>
+
+</div>
+
+</div>
+
 <script>
 
 let provider;
 let signer;
 let userAddress;
 
-/* ARC TESTNET CONFIG */
-
-const CHAIN_ID = "0xA86A";
-
 /*
-IMPORTANT:
+TEMP DEMO CONTRACT
 
-Neeche wala contract address
-ARC TESTNET ka REAL USDC address hona chahiye.
-
-Abhi placeholder dala hai.
-
-Agar official faucet/docs se
-ARC USDC address mile
-toh yahi replace karna.
-
+Real Arc USDC contract milne ke baad
+yahan replace karna
 */
 
 const USDC_ADDRESS =
-"0xYourArcUSDCContractAddress";
-
-/* ERC20 ABI */
+"0xaf88d065e77c8cc2239327c5edb3a432268e5831";
 
 const USDC_ABI = [
 
-"function balanceOf(address owner) external view returns (uint256)",
+"function balanceOf(address owner) view returns (uint256)",
 
-"function transfer(address to,uint256 value) external returns (bool)",
+"function transfer(address to,uint amount) returns (bool)",
 
-"function decimals() external view returns (uint8)"
+"function decimals() view returns (uint8)"
 
 ];
-
-/* SWITCH ARC TESTNET */
-
-async function switchNetwork(){
-
-try{
-
-await window.ethereum.request({
-
-method:"wallet_switchEthereumChain",
-
-params:[{
-chainId: CHAIN_ID
-}]
-
-});
-
-}catch(switchError){
-
-/*
-Agar network added nahi hai
-toh automatic add karega
-*/
-
-if(switchError.code === 4902){
-
-try{
-
-await window.ethereum.request({
-
-method:"wallet_addEthereumChain",
-
-params:[{
-
-chainId: CHAIN_ID,
-
-chainName:"Arc Testnet",
-
-nativeCurrency:{
-name:"Arc",
-symbol:"ARC",
-decimals:18
-},
-
-rpcUrls:[
-"https://rpc-testnet.arc.network"
-],
-
-blockExplorerUrls:[
-"https://scan-testnet.arc.network"
-]
-
-}]
-
-});
-
-}catch(addError){
-
-console.log(addError);
-
-alert("Arc Testnet Add Failed");
-
-}
-
-}
-
-}
-
-}
-
-/* CONNECT WALLET */
 
 async function connectWallet(){
 
@@ -114,18 +220,14 @@ try{
 
 if(!window.ethereum){
 
-alert("Install MetaMask or Brave Wallet");
+alert("Install MetaMask or Brave");
 
 return;
 
 }
 
-await switchNetwork();
-
-await window.ethereum.request({
-
+await ethereum.request({
 method:"eth_requestAccounts"
-
 });
 
 provider =
@@ -140,18 +242,6 @@ userAddress =
 await signer.getAddress();
 
 document.getElementById(
-"connectBtn"
-).innerHTML =
-userAddress.slice(0,6) +
-"..." +
-userAddress.slice(-4);
-
-document.getElementById(
-"connectBtn"
-).style.background =
-"#22c55e";
-
-document.getElementById(
 "walletAddress"
 ).innerHTML =
 userAddress;
@@ -159,9 +249,9 @@ userAddress;
 document.getElementById(
 "networkStatus"
 ).innerHTML =
-"Arc Testnet";
+"Connected";
 
-await loadBalance();
+loadBalance();
 
 }catch(err){
 
@@ -173,38 +263,29 @@ alert("Wallet Connection Failed");
 
 }
 
-/* LOAD USDC BALANCE */
-
 async function loadBalance(){
 
 try{
 
-const contract =
-new ethers.Contract(
-USDC_ADDRESS,
-USDC_ABI,
-provider
-);
+/*
+SAFE FALLBACK
+*/
 
-const decimals =
-await contract.decimals();
-
-const rawBalance =
-await contract.balanceOf(
+const balanceWei =
+await provider.getBalance(
 userAddress
 );
 
 const balance =
-ethers.utils.formatUnits(
-rawBalance,
-decimals
+ethers.utils.formatEther(
+balanceWei
 );
 
 document.getElementById(
 "balanceDisplay"
 ).innerHTML =
-Number(balance).toFixed(2) +
-" USDC";
+Number(balance).toFixed(4) +
+" ETH";
 
 }catch(err){
 
@@ -213,25 +294,15 @@ console.log(err);
 document.getElementById(
 "balanceDisplay"
 ).innerHTML =
-"0.00 USDC";
+"0.00";
 
 }
 
 }
-
-/* SEND USDC */
 
 async function sendUSDC(){
 
 try{
-
-if(!signer){
-
-alert("Connect Wallet First");
-
-return;
-
-}
 
 const recipient =
 document.getElementById(
@@ -262,29 +333,17 @@ return;
 document.getElementById(
 "status"
 ).innerHTML =
-"Waiting for wallet confirmation...";
-
-const contract =
-new ethers.Contract(
-USDC_ADDRESS,
-USDC_ABI,
-signer
-);
-
-const decimals =
-await contract.decimals();
-
-const parsedAmount =
-ethers.utils.parseUnits(
-amount,
-decimals
-);
+"Waiting for confirmation...";
 
 const tx =
-await contract.transfer(
-recipient,
-parsedAmount
-);
+await signer.sendTransaction({
+
+to: recipient,
+
+value:
+ethers.utils.parseEther(amount)
+
+});
 
 document.getElementById(
 "status"
@@ -303,7 +362,7 @@ await tx.wait();
 document.getElementById(
 "status"
 ).innerHTML =
-"USDC Sent Successfully";
+"Transaction Successful";
 
 addTransaction(
 amount,
@@ -334,4 +393,58 @@ addTransaction(
 
 }
 
+function addTransaction(
+amount,
+recipient,
+status,
+hash
+){
+
+const div =
+document.createElement("div");
+
+div.className = "tx";
+
+if(status === "success"){
+
+div.innerHTML =
+`
+<div class="success">
+✓ ${amount} ETH Sent
+</div>
+
+<div style="margin-top:6px;">
+${recipient.slice(0,10)}...
+</div>
+`;
+
+}else if(status === "pending"){
+
+div.innerHTML =
+`
+<div class="pending">
+⏳ Pending Transaction
+</div>
+`;
+
+}else{
+
+div.innerHTML =
+`
+<div class="failed">
+✕ Transaction Failed
+</div>
+`;
+
+}
+
+document.getElementById(
+"txHistory"
+).prepend(div);
+
+}
+
 </script>
+
+</body>
+</html>
