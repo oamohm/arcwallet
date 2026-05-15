@@ -3,116 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ArcPro • Arc Testnet Wallet</title>
+  <title>ArcPro Wallet</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Inter', sans-serif; background:#0a0a0f; color:#e0e0ff; }
-    .container { max-width:480px; margin:0 auto; background:#111118; min-height:100vh; }
-    header { padding:20px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #22222f; }
-    .logo { font-size:24px; font-weight:700; }
-    .card { background:#1a1a24; margin:16px; border-radius:20px; padding:20px; }
-    button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:16px; width:100%; font-weight:600; font-size:16px; cursor:pointer; }
-    input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
-    .balance { font-size:32px; font-weight:700; }
-    .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
-    .success { color:#22c55e; }
+    body { font-family: system-ui; background:#0a0a0f; color:#fff; margin:0; padding:16px; }
+    .card { background:#1a1a24; padding:20px; border-radius:16px; margin:16px 0; }
+    button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:12px; width:100%; font-size:16px; }
+    input { width:100%; padding:16px; background:#222; border:none; border-radius:12px; color:white; margin:8px 0; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">ArcPro</div>
-      <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
-    </header>
+  <h2>ArcPro Wallet</h2>
 
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;">
-        <div>
-          <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
-          <div id="balanceDisplay" class="balance">0.00 USDC</div>
-        </div>
-        <span id="status" style="color:#22c55e;">Connected</span>
-      </div>
-    </div>
+  <div class="card">
+    <strong>ARC TESTNET</strong><br>
+    <span id="balance" style="font-size:28px;">0.00 USDC</span>
+  </div>
 
-    <div class="card">
-      <strong>↗ Send USDC</strong>
-      <input type="text" id="recipient" placeholder="Recipient 0x..." />
-      <div style="margin:12px 0 8px;">Amount (1 USDC recommended)</div>
-      <input type="number" id="amount" value="1" step="0.01" />
-      <button onclick="sendUSDC()">Confirm Send</button>
-    </div>
-
-    <div class="card">
-      <strong>Recent Transactions</strong>
-      <div id="txHistory" style="margin-top:12px;"></div>
-    </div>
+  <div class="card">
+    <strong>Send USDC</strong>
+    <input type="text" id="to" placeholder="Recipient 0x...">
+    <input type="number" id="amt" value="1" step="0.01">
+    <button onclick="send()">Confirm Send</button>
   </div>
 
   <script>
-    let provider, signer, userAddress;
-    const USDC_ADDRESS = "0x3600000000000000000000000000000000000000"; // Official Arc USDC
+    let signer, userAddress;
+    const USDC = "0x3600000000000000000000000000000000000000";
 
-    async function connectWallet() {
-      const btn = document.getElementById("connectBtn");
-      btn.disabled = true;
-      btn.innerText = "Connecting...";
+    async function connect() {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      userAddress = accounts[0];
+      signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+      document.getElementById("balance").innerText = "Connected";
+    }
+
+    async function send() {
+      const to = document.getElementById("to").value;
+      const amt = document.getElementById("amt").value;
 
       try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userAddress = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-
-        btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
-        btn.style.background = "#22c55e";
-        getBalance();
-      } catch (e) {
-        alert("Connect failed: " + e.message);
-        btn.disabled = false;
-        btn.innerText = "Connect Wallet";
+        const contract = new ethers.Contract(USDC, ["function transfer(address,uint256)"], signer);
+        const tx = await contract.transfer(to, ethers.utils.parseUnits(amt, 6));
+        alert("Tx Sent! Hash: " + tx.hash);
+      } catch(e) {
+        alert("Error: " + e.message);
       }
     }
 
-    async function getBalance() {
-      if (!provider) return;
-      const bal = await provider.getBalance(userAddress);
-      document.getElementById("balanceDisplay").innerText = (bal / 1e18).toFixed(4) + " USDC";
-    }
-
-    async function sendUSDC() {
-      if (!signer) return alert("Pehle Connect karo");
-
-      const to = document.getElementById("recipient").value.trim();
-      const amt = document.getElementById("amount").value;
-
-      if (!ethers.utils.isAddress(to)) return alert("Sahih recipient address daalo");
-
-      try {
-        const contract = new ethers.Contract(USDC_ADDRESS, [
-          "function transfer(address to, uint256 amount) returns (bool)"
-        ], signer);
-
-        // **Important: USDC ERC20 interface uses 6 decimals**
-        const amountFormatted = ethers.utils.parseUnits(amt, 6);
-
-        const tx = await contract.transfer(to, amountFormatted);
-
-        alert(`✅ SUCCESS!\n\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
-
-        const div = document.createElement("div");
-        div.className = "tx";
-        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
-        document.getElementById("txHistory").prepend(div);
-
-        setTimeout(getBalance, 4000);
-      } catch (e) {
-        console.error(e);
-        alert("Error: " + (e.message || "Balance kam hai. Faucet se aur USDC lo"));
-      }
-    }
+    connect();
   </script>
 </body>
 </html>
