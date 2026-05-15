@@ -1,17 +1,49 @@
 # ArcPro Wallet
 
-**Builder-focused Web3 wallet for Arc Testnet**
+ArcPro Wallet is a lightweight Web3 wallet interface built for Arc ecosystem experimentation.
 
-Less noise, more signal. Clean UI + real usage.
+Features:
+- wallet connect
+- USDC balance visibility
+- real transaction support
+- responsive mobile interface
+- MetaMask / Brave Wallet support
+- transaction history
 
-## Quick Start
-1. Connect MetaMask
-2. Get test USDC → [Circle Faucet](https://faucet.circle.com) (Arc Testnet)
-3. Recipient address daalo
-4. Amount enter karo (5-10)
-5. Confirm Send → MetaMask approve karo
-6. Explorer pe check karo
+---
 
-**Live**: https://arc-pro-wallet.vercel.app/
+# Stack
 
-Made by @Bhupendrxsingh
+- HTML
+- CSS
+- JavaScript
+- Ethers.js
+
+---
+
+# Deployment
+
+1. Upload files to GitHub
+2. Connect repository with Vercel
+3. Deploy automatically
+
+---
+
+# Security
+
+This application never stores:
+- private keys
+- seed phrases
+- passwords
+
+Wallet ownership always remains with the user.
+
+---
+
+# Status
+
+Experimental infrastructure wallet build focused on:
+- settlement simplicity
+- wallet usability
+- infrastructure experimentation
+- lightweight execution
