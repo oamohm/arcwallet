@@ -19,6 +19,7 @@
     .quick button { background:#22222f; flex:1; padding:12px; border-radius:12px; }
     .balance { font-size:32px; font-weight:700; }
     .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
+    .success { color:#22c55e; }
   </style>
 </head>
 <body>
@@ -39,9 +40,9 @@
     </div>
 
     <div class="card">
-      <strong>↗ Send USDC (Native)</strong>
+      <strong>↗ Send USDC</strong>
       <input type="text" id="recipient" placeholder="Recipient 0x..." />
-      <div style="margin:12px 0 8px;">Amount</div>
+      <div style="margin:12px 0 8px;">Amount (USDC)</div>
       <input type="number" id="amount" value="5" step="0.01" />
       <button onclick="sendUSDC()">Confirm Send</button>
     </div>
@@ -54,11 +55,11 @@
 
   <script>
     let provider, signer, userAddress;
+    const USDC_ERC20 = "0x3600000000000000000000000000000000000000";
 
     async function connectWallet() {
       const btn = document.getElementById("connectBtn");
-      btn.disabled = true;
-      btn.innerText = "Connecting...";
+      btn.disabled = true; btn.innerText = "Connecting...";
 
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -72,9 +73,8 @@
         document.getElementById("status").style.color = "#22c55e";
         getBalance();
       } catch (e) {
-        alert("Connect failed: " + e.message);
-        btn.disabled = false;
-        btn.innerText = "Connect Wallet";
+        alert("Connect failed");
+        btn.disabled = false; btn.innerText = "Connect Wallet";
       }
     }
 
@@ -85,32 +85,31 @@
     }
 
     async function sendUSDC() {
-      if (!signer) return alert("Pehle Connect karo");
+      if (!signer) return alert("Connect wallet first");
 
       const to = document.getElementById("recipient").value.trim();
       const amt = document.getElementById("amount").value;
 
-      if (!ethers.utils.isAddress(to)) return alert("Sahih address daalo");
+      if (!ethers.utils.isAddress(to)) return alert("Invalid address");
 
       try {
-        const tx = await signer.sendTransaction({
-          to: to,
-          value: ethers.utils.parseUnits(amt, 18),
-          gasLimit: 80000
-        });
+        const contract = new ethers.Contract(USDC_ERC20, [
+          "function transfer(address to, uint256 amount) returns (bool)"
+        ], signer);
 
-        alert(`✅ Tx Sent Successfully!\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
+        const tx = await contract.transfer(to, ethers.utils.parseUnits(amt, 6)); // 6 decimals for ERC20
 
-        // Add to history
+        alert(`✅ Tx Sent!\nHash: ${tx.hash}`);
+
         const div = document.createElement("div");
         div.className = "tx";
-        div.innerHTML = `✓ ${amt} USDC Sent<br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View on Explorer</a>`;
+        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
         document.getElementById("txHistory").prepend(div);
 
-        setTimeout(getBalance, 5000);
+        setTimeout(getBalance, 4000); // Real-time balance update
       } catch (e) {
         console.error(e);
-        alert("Failed: " + e.message + "\n\nTry smaller amount (1-5) or check faucet balance");
+        alert("Error: " + e.message);
       }
     }
   </script>
