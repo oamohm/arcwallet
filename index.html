@@ -19,7 +19,6 @@
     .quick button { background:#22222f; flex:1; padding:12px; border-radius:12px; }
     .balance { font-size:32px; font-weight:700; }
     .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
-    .success { color:#22c55e; }
   </style>
 </head>
 <body>
@@ -41,8 +40,7 @@
 
     <div class="card">
       <strong>↗ Send USDC</strong>
-      <select><option>USDC (Native)</option></select>
-      <input type="text" id="recipient" placeholder="0x... Recipient Address" />
+      <input type="text" id="recipient" placeholder="Recipient 0x..." />
       <div style="margin:12px 0 8px;">Quick Amount</div>
       <div class="quick">
         <button onclick="setAmount(5)">5</button>
@@ -61,11 +59,11 @@
 
   <script>
     let provider, signer, userAddress;
+    const USDC_ADDRESS = "0x3600000000000000000000000000000000000000"; // Arc official
 
     async function connectWallet() {
       const btn = document.getElementById("connectBtn");
-      btn.disabled = true;
-      btn.innerText = "Connecting...";
+      btn.disabled = true; btn.innerText = "Connecting...";
 
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -79,9 +77,8 @@
         document.getElementById("status").style.color = "#22c55e";
         getBalance();
       } catch (e) {
-        alert("MetaMask error: " + e.message);
-        btn.disabled = false;
-        btn.innerText = "Connect Wallet";
+        alert("Connect failed");
+        btn.disabled = false; btn.innerText = "Connect Wallet";
       }
     }
 
@@ -91,38 +88,34 @@
       document.getElementById("balanceDisplay").innerText = (bal / 1e18).toFixed(4) + " USDC";
     }
 
-    function setAmount(val) {
-      document.getElementById("amount").value = val;
-    }
+    function setAmount(val) { document.getElementById("amount").value = val; }
 
     async function sendUSDC() {
       if (!signer) return alert("Connect wallet first");
-
       const to = document.getElementById("recipient").value.trim();
       const amt = document.getElementById("amount").value;
 
       if (!ethers.utils.isAddress(to)) return alert("Invalid address");
 
       try {
-        const tx = await signer.sendTransaction({
-          to: to,
-          value: ethers.utils.parseUnits(amt, 18),
-          gasLimit: 100000
-        });
+        const usdc = new ethers.Contract(USDC_ADDRESS, [
+          "function transfer(address to, uint256 amount) returns (bool)"
+        ], signer);
 
-        const hash = tx.hash;
-        alert(`✅ Transaction Sent!\n\nHash: ${hash}\n\nCheck Explorer: https://testnet.arcscan.app/tx/${hash}`);
+        const amount = ethers.utils.parseUnits(amt, 6); // ERC20 interface uses 6 decimals
 
-        // Add to history
+        const tx = await usdc.transfer(to, amount);
+        alert(`✅ Transaction Sent!\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
+
         const div = document.createElement("div");
         div.className = "tx";
-        div.innerHTML = `<span class="success">✓ Sent ${amt} USDC</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${hash}" target="_blank">View on Explorer</a>`;
+        div.innerHTML = `✓ Sent ${amt} USDC<br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
         document.getElementById("txHistory").prepend(div);
 
-        setTimeout(getBalance, 5000);
+        setTimeout(getBalance, 4000);
       } catch (e) {
         console.error(e);
-        alert("Transaction Failed: " + (e.message || "Try smaller amount or check gas"));
+        alert("Failed: " + e.message);
       }
     }
   </script>
