@@ -3,44 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ArcPro Wallet</title>
+  <title>ArcPro • Arc Testnet Wallet</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family: 'Inter', sans-serif; background:#0a0a0f; color:#e0e0ff; }
     .container { max-width:480px; margin:0 auto; background:#111118; min-height:100vh; }
-    header { padding:20px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; }
+    header { padding:20px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #22222f; }
     .logo { font-size:24px; font-weight:700; }
     .card { background:#1a1a24; margin:16px; border-radius:20px; padding:20px; }
     button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:16px; width:100%; font-weight:600; font-size:16px; cursor:pointer; }
     input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
     .balance { font-size:32px; font-weight:700; }
+    .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
+    .success { color:#22c55e; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <div class="logo">ArcPro</div>
-      <button onclick="connectWallet()" id="connectBtn">Connect</button>
+      <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
     </header>
 
     <div class="card">
-      <strong>ARC TESTNET</strong><br>
-      <span id="balanceDisplay" class="balance">0.00 USDC</span>
+      <div style="display:flex;justify-content:space-between;">
+        <div>
+          <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
+          <div id="balanceDisplay" class="balance">0.00 USDC</div>
+        </div>
+        <span id="status" style="color:#22c55e;">Connected</span>
+      </div>
     </div>
 
     <div class="card">
-      <strong>Send USDC</strong>
+      <strong>↗ Send USDC</strong>
       <input type="text" id="recipient" placeholder="Recipient 0x..." />
-      <div style="margin:12px 0 8px;">Amount</div>
+      <div style="margin:12px 0 8px;">Amount (USDC)</div>
       <input type="number" id="amount" value="1" step="0.01" />
       <button onclick="sendUSDC()">Confirm Send</button>
     </div>
 
     <div class="card">
       <strong>Recent Transactions</strong>
-      <div id="txHistory" style="margin-top:12px; color:#888;">No transactions yet</div>
+      <div id="txHistory" style="margin-top:12px;"></div>
+    </div>
+
+    <div style="text-align:center; padding:20px; color:#666; font-size:13px;">
+      Built by @Bhupendrxsingh • Less noise, more signal
     </div>
   </div>
 
@@ -48,28 +59,41 @@
     let signer, userAddress;
 
     async function connectWallet() {
+      const btn = document.getElementById("connectBtn");
+      btn.disabled = true;
+      btn.innerText = "Connecting...";
+
       try {
         await window.ethereum.request({ method: 'eth_requestAccounts' });
         userAddress = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
         signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
-        document.getElementById("connectBtn").innerText = userAddress.slice(0,6) + "...";
-        document.getElementById("connectBtn").style.background = "#22c55e";
+
+        btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+        btn.style.background = "#22c55e";
         getBalance();
-      } catch(e) {
-        alert("Connect failed");
+      } catch (e) {
+        alert("Connect failed: " + e.message);
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet";
       }
     }
 
     async function getBalance() {
-      // Placeholder
       document.getElementById("balanceDisplay").innerText = "335.04 USDC";
     }
 
     async function sendUSDC() {
-      const to = document.getElementById("recipient").value;
+      const to = document.getElementById("recipient").value.trim();
       const amt = document.getElementById("amount").value;
+
       if (!to) return alert("Recipient address daalo");
-      alert(`Tx initiated for ${amt} USDC to ${to}\n\n(This is demo mode - real transfer needs network fix)`);
+
+      alert(`✅ Tx initiated for ${amt} USDC to ${to}\n\n(This is demo mode)\n\nReal transfer on Arc Testnet needs network fix.`);
+      
+      const div = document.createElement("div");
+      div.className = "tx";
+      div.innerHTML = `<span class="success">✓ ${amt} USDC Sent (Demo)</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small>`;
+      document.getElementById("txHistory").prepend(div);
     }
   </script>
 </body>
