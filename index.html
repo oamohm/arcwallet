@@ -11,12 +11,12 @@
     body { font-family: 'Inter', sans-serif; background:#0a0a0f; color:#e0e0ff; }
     .container { max-width:480px; margin:0 auto; background:#111118; min-height:100vh; }
     header { padding:20px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #22222f; }
-    .logo { font-size:24px; font-weight:700; letter-spacing:-0.5px; }
+    .logo { font-size:24px; font-weight:700; }
     .card { background:#1a1a24; margin:16px; border-radius:20px; padding:20px; }
     button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:16px; width:100%; font-weight:600; font-size:16px; cursor:pointer; }
     input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
     .balance { font-size:32px; font-weight:700; }
-    .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; line-height:1.4; }
+    .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
     .success { color:#22c55e; }
     .ecosystem { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
     .ecosystem div { background:#22222f; padding:14px; border-radius:12px; text-align:center; cursor:pointer; font-size:14px; }
@@ -30,7 +30,7 @@
     </header>
 
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;justify-content:space-between;">
         <div>
           <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
           <div id="balanceDisplay" class="balance">0.00 USDC</div>
@@ -53,13 +53,14 @@
     </div>
 
     <div class="card">
-      <strong>Arc Ecosystem</strong>
+      <strong>Arc Ecosystem & Socials</strong>
       <div class="ecosystem">
         <div onclick="window.open('https://arc.network')">Website</div>
         <div onclick="window.open('https://docs.arc.network')">Docs</div>
         <div onclick="window.open('https://community.arc.network')">House</div>
-        <div onclick="window.open('https://x.com/Bhupendrxsingh')">X @Bhupendrxsingh</div>
+        <div onclick="window.open('https://x.com/Bhupendrxsingh')">@Bhupendrxsingh</div>
         <div onclick="window.open('https://discord.gg/arcnetwork')">Discord</div>
+        <div onclick="window.open('https://linkedin.com/in/bhupendrxsingh')">LinkedIn</div>
       </div>
     </div>
   </div>
@@ -116,13 +117,13 @@
 
         const div = document.createElement("div");
         div.className = "tx";
-        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank" style="color:#60a5fa;">View Explorer</a>`;
+        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
         document.getElementById("txHistory").prepend(div);
 
         setTimeout(getBalance, 4000);
       } catch (e) {
         console.error(e);
-        alert("Transaction Failed: " + (e.message || "Please check balance or try smaller amount"));
+        alert("Transaction Failed: " + (e.message || "Please check balance"));
       }
     }
   </script>
