@@ -20,12 +20,10 @@
     .success { color:#22c55e; }
     .ecosystem { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
     .ecosystem div { background:#22222f; padding:14px; border-radius:12px; text-align:center; cursor:pointer; font-size:14px; }
-    .send-section { display:none; }
-    .connected .send-section { display:block; }
   </style>
 </head>
 <body>
-  <div class="container" id="mainContainer">
+  <div class="container">
     <header>
       <div class="logo">ArcPro</div>
       <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
@@ -37,16 +35,15 @@
           <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
           <div id="balanceDisplay" class="balance">0.00 USDC</div>
         </div>
-        <span id="status" style="color:#eab308;">Idle</span>
+        <span id="status" style="color:#22c55e;">Connected</span>
       </div>
     </div>
 
-    <!-- Send USDC section - only visible after connect -->
-    <div class="card send-section" id="sendSection">
+    <div class="card">
       <strong>↗ Send USDC</strong>
       <input type="text" id="recipient" placeholder="Recipient 0x..." />
       <div style="margin:12px 0 8px;">Amount (USDC)</div>
-      <input type="number" id="amount" value="1" step="0.01" />
+      <input type="number" id="amount" placeholder="Enter amount" step="0.01" />
       <button onclick="sendUSDC()">Confirm Send</button>
     </div>
 
@@ -85,9 +82,6 @@
 
         btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
         btn.style.background = "#22c55e";
-        document.getElementById("status").innerText = "Connected";
-        document.getElementById("status").style.color = "#22c55e";
-        document.getElementById("mainContainer").classList.add("connected");
         getBalance();
       } catch (e) {
         alert("Connect failed: " + e.message);
@@ -109,6 +103,7 @@
       const amt = document.getElementById("amount").value;
 
       if (!ethers.utils.isAddress(to)) return alert("Please enter a valid recipient address");
+      if (!amt || parseFloat(amt) <= 0) return alert("Please enter amount");
 
       try {
         const contract = new ethers.Contract(USDC_ADDRESS, [
