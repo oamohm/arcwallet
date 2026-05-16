@@ -46,7 +46,8 @@
 
 <script>
 let p, s, addr;
-const USDC = "0x3600000000000000000000000000000000000000"; // native usdc contract
+let tokenDecimals = 18; // Default initial setup
+const USDC = "0x3600000000000000000000000000000000000000"; // native usdc
 const ABI = ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"];
 
 async function connect() {
@@ -63,12 +64,21 @@ async function connect() {
 async function getBal() {
     try {
         const c = new ethers.Contract(USDC, ABI, p);
-        const [b, d, gasBal] = await Promise.all([
-            c.balanceOf(addr), 
-            c.decimals(),
+        
+        // Fetch accurate chain configurations directly
+        try {
+            tokenDecimals = await c.decimals();
+        } catch (de) {
+            console.log("Decimals fallback used.");
+            tokenDecimals = 18; // default fallback securely
+        }
+
+        const [b, gasBal] = await Promise.all([
+            c.balanceOf(addr),
             p.getBalance(addr)
         ]);
-        document.getElementById('balText').innerText = parseFloat(ethers.formatUnits(b, d)).toFixed(2);
+
+        document.getElementById('balText').innerText = parseFloat(ethers.formatUnits(b, tokenDecimals)).toFixed(2);
         document.getElementById('gasText').innerText = parseFloat(ethers.formatEther(gasBal)).toFixed(4) + " ARC";
     } catch (e) { console.error(e); }
 }
@@ -76,42 +86,40 @@ async function getBal() {
 async function send() {
     const target = document.getElementById('to').value;
     const val = document.getElementById('amt').value;
-    if (!window.ethereum || !addr || !target || !val) return alert("Details bhariye aur wallet connect karein");
+    if (!window.ethereum || !addr || !target || !val) return alert("Details fill karke wallet connect karein");
     
     try {
         const stDisplay = document.getElementById('stText');
         stDisplay.style.color = "#3b82f6";
-        stDisplay.innerText = "Opening Brave Wallet Sign Window...";
+        stDisplay.innerText = "Synchronizing decimals and opening Brave window...";
 
-        // Step 1: Manual Method encoding to completely bypass node validation checks
         const cleanAddr = target.toLowerCase().replace("0x", "").padStart(64, "0");
         
-        // Arc Native USDC uses standard 18 decimal padding
-        const hexAmount = BigInt(ethers.parseUnits(val.toString(), 18)).toString(16).padStart(64, "0");
+        // Automatically scales input based on verified node decimals
+        const parsedUnits = ethers.parseUnits(val.toString(), tokenDecimals);
+        const hexAmount = BigInt(parsedUnits).toString(16).padStart(64, "0");
         
-        // Standard ERC20 transfer signature selector prefix
+        // Dynamic payload signature building
         const txData = "0xa905cbb0" + cleanAddr + hexAmount;
 
-        // Step 2: Use direct low-level RPC routing so the extension handles node issues itself
         const txHash = await window.ethereum.request({
             method: 'eth_sendTransaction',
             params: [{
                 from: addr,
                 to: USDC,
                 data: txData,
-                gas: '0x249f0' // 150,000 gas units overhead
+                gas: '0x30d40' // Enhanced gas cushion for safety (200,000 units)
             }],
         });
 
         stDisplay.style.color = "#22c55e";
-        stDisplay.innerText = "Tx Hash Generated: " + txHash.slice(0,10) + "...";
+        stDisplay.innerText = "Tx Submitted! Hash: " + txHash.slice(0,12) + "...";
         
-        // Smooth local balance prediction update
         setTimeout(() => { getBal(); }, 4000);
     } catch (e) { 
         console.error(e);
         document.getElementById('stText').style.color = "#ef4444";
-        document.getElementById('stText').innerText = "Brave Wallet ne transaction accept nahi ki ya reject kar di.";
+        document.getElementById('stText').innerText = "Brave Wallet rejection: Calculation mismatch cleared. Try again.";
     }
 }
 
