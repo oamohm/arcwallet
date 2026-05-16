@@ -1,611 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>ArcPro Wallet</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-
-<style>
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-font-family:'Inter',sans-serif;
-background:#050816;
-color:white;
-display:flex;
-justify-content:center;
-padding:18px;
-min-height:100vh;
-}
-
-.app{
-width:100%;
-max-width:460px;
-}
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-
-.logo{
-font-size:32px;
-font-weight:800;
-}
-
-.logo span{
-color:#3b82f6;
-font-weight:300;
-}
-
-.connect{
-background:#3b82f6;
-border:none;
-color:white;
-padding:12px 18px;
-border-radius:14px;
-font-weight:700;
-cursor:pointer;
-}
-
-.card{
-background:#0f172a;
-border:1px solid rgba(255,255,255,0.05);
-border-radius:28px;
-padding:22px;
-margin-bottom:18px;
-}
-
-.label{
-font-size:12px;
-letter-spacing:1px;
-color:#94a3b8;
-text-align:center;
-}
-
-.balance{
-font-size:52px;
-font-weight:800;
-text-align:center;
-margin-top:10px;
-}
-
-.balance span{
-font-size:24px;
-color:#3b82f6;
-}
-
-.address{
-margin-top:14px;
-text-align:center;
-font-size:12px;
-color:#10b981;
-word-break:break-word;
-}
-
-.network{
-text-align:center;
-margin-top:10px;
-font-size:13px;
-color:#94a3b8;
-}
-
-.input{
-width:100%;
-padding:18px;
-border-radius:18px;
-border:none;
-background:#020617;
-color:white;
-margin-top:14px;
-font-size:15px;
-outline:none;
-}
-
-.action{
-width:100%;
-padding:18px;
-border:none;
-border-radius:18px;
-background:#3b82f6;
-color:white;
-font-size:15px;
-font-weight:700;
-margin-top:16px;
-cursor:pointer;
-}
-
-.status{
-text-align:center;
-margin-top:14px;
-font-size:13px;
-color:#94a3b8;
-}
-
-.history{
-margin-top:10px;
-}
-
-.tx{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:16px 0;
-border-bottom:1px solid rgba(255,255,255,0.05);
-}
-
-.txLeft{
-display:flex;
-align-items:center;
-gap:12px;
-}
-
-.icon{
-width:42px;
-height:42px;
-border-radius:14px;
-display:flex;
-justify-content:center;
-align-items:center;
-background:rgba(59,130,246,0.1);
-color:#3b82f6;
-font-size:18px;
-}
-
-.hash{
-font-size:11px;
-color:#94a3b8;
-margin-top:4px;
-}
-
-.amount{
-font-weight:700;
-color:#10b981;
-}
-
-.footer{
-text-align:center;
-margin-top:20px;
-font-size:12px;
-color:#64748b;
-}
-
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArcPro • Arc Testnet Wallet</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Inter', sans-serif; background:#0a0a0f; color:#e0e0ff; }
+    .container { max-width:480px; margin:0 auto; background:#111118; min-height:100vh; }
+    header { padding:20px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #22222f; }
+    .logo { font-size:24px; font-weight:700; }
+    .card { background:#1a1a24; margin:16px; border-radius:20px; padding:20px; }
+    button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:16px; width:100%; font-weight:600; font-size:16px; cursor:pointer; }
+    input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
+    .balance { font-size:32px; font-weight:700; }
+    .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
+    .success { color:#22c55e; }
+  </style>
 </head>
-
 <body>
-
-<div class="app">
-
-<div class="header">
-<div class="logo">
-ARC<span>PRO</span>
-</div>
-
-<button
-class="connect"
-id="connectBtn"
-onclick="connectWallet()">
-Connect
-</button>
-</div>
-
-<div class="card">
-
-<div class="label">
-TOTAL USDC BALANCE
-</div>
-
-<div
-class="balance"
-id="balance">
-0.00 <span>USDC</span>
-</div>
-
-<div
-class="address"
-id="walletAddress">
-Wallet Not Connected
-</div>
-
-<div
-class="network"
-id="network">
-Arc Testnet Offline
-</div>
-
-</div>
-
-<div class="card">
-
-<div style="font-size:14px;color:#94a3b8;">
-Send USDC
-</div>
-
-<input
-class="input"
-id="recipient"
-placeholder="Recipient Address">
-
-<input
-class="input"
-id="amount"
-type="number"
-placeholder="Amount In USDC">
-
-<button
-class="action"
-onclick="sendUSDC()"
-id="sendBtn">
-Process Transfer
-</button>
-
-<div
-class="status"
-id="status">
-Waiting For Wallet Connection
-</div>
-
-</div>
-
-<div class="card">
-
-<div style="font-size:12px;color:#94a3b8;letter-spacing:1px;">
-TRANSACTION HISTORY
-</div>
-
-<div
-class="history"
-id="history">
-</div>
-
-</div>
-
-<div class="footer">
-Built by @Bhupendrxsingh
-</div>
-
-</div>
-
-<script>
-
-const ARC_CHAIN = {
-chainId: "0x4cf7ea",
-chainName: "Arc Testnet",
-rpcUrls: ["https://arc-testnet.drpc.org"],
-nativeCurrency: {
-name: "Arc",
-symbol: "ARC",
-decimals: 18
-},
-blockExplorerUrls: ["https://explorer.arc.io"]
-};
-
-const USDC_ADDRESS =
-"0x3600000000000000000000000000000000000000";
-
-const ERC20_ABI = [
-"function balanceOf(address owner) view returns (uint256)",
-"function transfer(address to, uint amount) returns (bool)",
-"function decimals() view returns (uint8)"
-];
-
-let provider;
-let signer;
-let userAddress;
-let usdc;
-
-async function connectWallet(){
-
-try{
-
-if(!window.ethereum){
-alert("Install MetaMask or Brave Wallet");
-return;
-}
-
-provider =
-new ethers.BrowserProvider(window.ethereum);
-
-await switchNetwork();
-
-await provider.send(
-"eth_requestAccounts",
-[]
-);
-
-signer =
-await provider.getSigner();
-
-userAddress =
-await signer.getAddress();
-
-usdc =
-new ethers.Contract(
-USDC_ADDRESS,
-ERC20_ABI,
-signer
-);
-
-document.getElementById(
-"connectBtn"
-).innerText = "Connected";
-
-document.getElementById(
-"walletAddress"
-).innerText =
-userAddress;
-
-document.getElementById(
-"network"
-).innerText =
-"Arc Testnet Active";
-
-document.getElementById(
-"status"
-).innerText =
-"Wallet Connected";
-
-await loadBalance();
-
-loadHistory();
-
-}catch(err){
-
-console.log(err);
-
-alert(err.message);
-
-}
-
-}
-
-async function switchNetwork(){
-
-try{
-
-await window.ethereum.request({
-method:"wallet_switchEthereumChain",
-params:[{ chainId:"0x4cf7ea" }]
-});
-
-}catch(err){
-
-await window.ethereum.request({
-method:"wallet_addEthereumChain",
-params:[ARC_CHAIN]
-});
-
-}
-
-}
-
-async function loadBalance(){
-
-try{
-
-const decimals =
-await usdc.decimals();
-
-const bal =
-await usdc.balanceOf(userAddress);
-
-document.getElementById(
-"balance"
-).innerHTML =
-parseFloat(
-ethers.formatUnits(bal, decimals)
-).toFixed(4)
-+ " <span>USDC</span>";
-
-}catch(err){
-
-console.log(err);
-
-}
-
-}
-
-async function sendUSDC(){
-
-try{
-
-const to =
-document.getElementById(
-"recipient"
-).value.trim();
-
-const amount =
-document.getElementById(
-"amount"
-).value.trim();
-
-if(!to || !amount){
-alert("Fill all fields");
-return;
-}
-
-const btn =
-document.getElementById(
-"sendBtn"
-);
-
-btn.disabled = true;
-
-btn.innerText = "Processing...";
-
-document.getElementById(
-"status"
-).innerText =
-"Waiting For Wallet Confirmation";
-
-const tx =
-await usdc.transfer(
-to,
-ethers.parseUnits(amount,6)
-);
-
-document.getElementById(
-"status"
-).innerText =
-"Transaction Pending";
-
-addHistory(
-amount,
-tx.hash,
-"Pending"
-);
-
-await tx.wait();
-
-document.getElementById(
-"status"
-).innerText =
-"Transaction Confirmed";
-
-addHistory(
-amount,
-tx.hash,
-"Confirmed"
-);
-
-await loadBalance();
-
-btn.disabled = false;
-
-btn.innerText = "Process Transfer";
-
-}catch(err){
-
-console.log(err);
-
-document.getElementById(
-"status"
-).innerText =
-"Transaction Failed";
-
-document.getElementById(
-"sendBtn"
-).disabled = false;
-
-document.getElementById(
-"sendBtn"
-).innerText =
-"Process Transfer";
-
-}
-
-}
-
-function addHistory(
-amount,
-hash,
-status
-){
-
-let logs =
-JSON.parse(
-localStorage.getItem("arc_logs") || "[]"
-);
-
-logs.unshift({
-amount,
-hash,
-status,
-time:new Date().toLocaleTimeString()
-});
-
-localStorage.setItem(
-"arc_logs",
-JSON.stringify(logs)
-);
-
-renderHistory();
-
-}
-
-function renderHistory(){
-
-const box =
-document.getElementById(
-"history"
-);
-
-let logs =
-JSON.parse(
-localStorage.getItem("arc_logs") || "[]"
-);
-
-if(logs.length === 0){
-
-box.innerHTML =
-'<div style="padding:20px;text-align:center;color:#64748b;">No Transactions Yet</div>';
-
-return;
-
-}
-
-box.innerHTML =
-logs.map(log => `
-
-<div class="tx">
-
-<div class="txLeft">
-
-<div class="icon">
-↗
-</div>
-
-<div>
-
-<div style="font-size:14px;font-weight:700;">
-${log.status}
-</div>
-
-<div class="hash">
-${log.hash.slice(0,18)}...
-</div>
-
-</div>
-
-</div>
-
-<div style="text-align:right;">
-
-<div class="amount">
-${log.amount} USDC
-</div>
-
-<div class="hash">
-${log.time}
-</div>
-
-</div>
-
-</div>
-
-`).join('');
-
-}
-
-function loadHistory(){
-renderHistory();
-}
-
-</script>
-
+  <div class="container">
+    <header>
+      <div class="logo">ArcPro</div>
+      <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
+    </header>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;">
+        <div>
+          <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
+          <div id="balanceDisplay" class="balance">0.00 USDC</div>
+        </div>
+        <span id="status" style="color:#22c55e;">Connected</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <strong>↗ Send USDC</strong>
+      <input type="text" id="recipient" placeholder="Recipient 0x..." />
+      <div style="margin:12px 0 8px;">Amount (USDC)</div>
+      <input type="number" id="amount" value="1" step="0.01" />
+      <button onclick="sendUSDC()">Confirm Send</button>
+    </div>
+
+    <div class="card">
+      <strong>Recent Transactions</strong>
+      <div id="txHistory" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <script>
+    let provider, signer, userAddress;
+    const USDC_ADDRESS = "0x3600000000000000000000000000000000000000"; // Official Arc Testnet USDC (6 decimals)
+
+    async function connectWallet() {
+      const btn = document.getElementById("connectBtn");
+      btn.disabled = true;
+      btn.innerText = "Connecting...";
+
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        userAddress = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+
+        btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+        btn.style.background = "#22c55e";
+        getBalance();
+      } catch (e) {
+        alert("Connect failed: " + e.message);
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet";
+      }
+    }
+
+    async function getBalance() {
+      if (!provider) return;
+      const bal = await provider.getBalance(userAddress);
+      document.getElementById("balanceDisplay").innerText = (bal / 1e18).toFixed(4) + " USDC";
+    }
+
+    async function sendUSDC() {
+      if (!signer) return alert("Pehle Connect karo");
+
+      const to = document.getElementById("recipient").value.trim();
+      const amt = document.getElementById("amount").value;
+
+      if (!ethers.utils.isAddress(to)) return alert("Sahih recipient address daalo");
+
+      try {
+        const contract = new ethers.Contract(USDC_ADDRESS, [
+          "function transfer(address to, uint256 amount) returns (bool)"
+        ], signer);
+
+        // 6 decimals for Arc Testnet USDC ERC20
+        const amountFormatted = ethers.utils.parseUnits(amt, 6);
+
+        const tx = await contract.transfer(to, amountFormatted);
+
+        alert(`✅ SUCCESS!\n\nHash: ${tx.hash}\n\nExplorer: https://testnet.arcscan.app/tx/${tx.hash}`);
+
+        const div = document.createElement("div");
+        div.className = "tx";
+        div.innerHTML = `<span class="success">✓ ${amt} USDC Sent</span><br><small>${new Date().toLocaleTimeString()} → ${to.slice(0,8)}...</small><br><a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank">View Explorer</a>`;
+        document.getElementById("txHistory").prepend(div);
+
+        setTimeout(getBalance, 4000);
+      } catch (e) {
+        console.error(e);
+        alert("Error: " + (e.message || "Balance kam hai ya network issue"));
+      }
+    }
+  </script>
 </body>
 </html>
