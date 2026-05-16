@@ -53,7 +53,7 @@
 
   <script>
     let provider, signer, userAddress;
-    const USDC_ADDRESS = "0x3600000000000000000000000000000000000000"; // Official Arc Testnet USDC (6 decimals)
+    const USDC_ADDRESS = "0x3600000000000000000000000000000000000000"; // Official Arc Testnet USDC
 
     async function connectWallet() {
       const btn = document.getElementById("connectBtn");
@@ -95,8 +95,7 @@
           "function transfer(address to, uint256 amount) returns (bool)"
         ], signer);
 
-        // 6 decimals for Arc Testnet USDC ERC20
-        const amountFormatted = ethers.utils.parseUnits(amt, 6);
+        const amountFormatted = ethers.utils.parseUnits(amt, 6); // Arc USDC = 6 decimals
 
         const tx = await contract.transfer(to, amountFormatted);
 
