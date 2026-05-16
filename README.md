@@ -1,122 +1,99 @@
-# 🏦 ArcPro Wallet (Arc Testnet)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArcPro • Arc Testnet Wallet</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Inter', sans-serif; background:#0a0a0f; color:#e0e0ff; }
+    .container { max-width:480px; margin:0 auto; background:#111118; min-height:100vh; }
+    header { padding:16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #22222f; }
+    .logo { font-size:22px; font-weight:700; }
+    .card { background:#1a1a24; margin:16px; border-radius:20px; padding:20px; }
+    button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:16px; width:100%; font-weight:600; font-size:16px; cursor:pointer; }
+    input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
+    .balance { font-size:32px; font-weight:700; }
+    .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
+    .success { color:#22c55e; }
+    .ecosystem { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+    .ecosystem div { background:#22222f; padding:14px; border-radius:12px; text-align:center; cursor:pointer; font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">ArcPro</div>
+      <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
+    </header>
 
-A lightweight and secure web-based wallet designed specifically for native USDC transfers on the **Arc Testnet**.  
-The application uses **Ethers.js v6** to interact directly with the blockchain inside the browser.
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;">
+        <div>
+          <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
+          <div id="balanceDisplay" class="balance">0.00 USDC</div>
+        </div>
+        <span id="status" style="color:#22c55e;">Connected</span>
+      </div>
+    </div>
 
----
+    <div class="card">
+      <strong>↗ Send USDC</strong>
+      <input type="text" id="recipient" placeholder="Recipient 0x..." />
+      <div style="margin:12px 0 8px;">Amount (USDC)</div>
+      <input type="number" id="amount" value="1" step="0.01" />
+      <button onclick="sendUSDC()">Confirm Send</button>
+    </div>
 
-## ✨ Features
+    <div class="card">
+      <strong>Recent Transactions</strong>
+      <div id="txHistory" style="margin-top:12px;"></div>
+    </div>
 
-- **Instant Wallet Connect**  
-  Seamless integration with MetaMask and Brave Wallet.
+    <div class="card">
+      <strong>Arc Ecosystem</strong>
+      <div class="ecosystem">
+        <div onclick="window.open('https://arc.network')">Website</div>
+        <div onclick="window.open('https://docs.arc.network')">Docs</div>
+        <div onclick="window.open('https://community.arc.network')">House</div>
+        <div onclick="window.open('https://x.com/Bhupendrxsingh')">@Bhupendrxsingh</div>
+        <div onclick="window.open('https://discord.gg/arcnetwork')">Discord</div>
+        <div onclick="window.open('https://t.me/Bhupendrxsingh')">Telegram</div>
+      </div>
+    </div>
+  </div>
 
-- **Automatic Chain Switching**  
-  If Arc Testnet is not added, the app automatically prompts users to add or switch networks.
+  <script>
+    let provider, signer, userAddress;
+    const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 
-- **Native USDC Support**  
-  Fetches real-time balances and transfers directly from the native USDC contract:
-  `0x3600000000000000000000000000000000000000`
+    async function connectWallet() {
+      const btn = document.getElementById("connectBtn");
+      btn.disabled = true;
+      btn.innerText = "Connecting...";
 
-- **Live Transaction Ledger**  
-  Tracks recent transactions during the active browser session.
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        userAddress = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
 
-- **Optimized Interface**  
-  Clean dark-mode UI optimized for both mobile and desktop devices.
+        btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+        btn.style.background = "#22c55e";
+        getBalance();
+      } catch (e) {
+        alert("Connect failed: " + e.message);
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet";
+      }
+    }
 
----
+    async function getBalance() {
+      if (!provider) return;
+      const bal = await provider.getBalance(userAddress);
+      document.getElementById("balanceDisplay").innerText = (bal / 1e18).toFixed(4) + " USDC";
+    }
 
-## 🚀 Setup & Installation
-
-### 1. Create File
-
-Create a file named:
-
-```bash
-index.html
-
-Paste the complete application code into that file.
-
----
-
-2. Run Locally
-
-Open the file in any browser.
-
-For better development experience, use:
-
-- VS Code
-- Live Server Extension
-
----
-
-3. Network Requirements
-
-Setting| Value
-RPC URL| "https://arc-testnet.drpc.org"
-Chain ID| "5042002"
-Hex Chain ID| "0x4cef52"
-Currency Symbol| "USDC"
-
----
-
-🛠 Technical Stack
-
-- Frontend: HTML5, CSS3
-- Fonts: Inter
-- Blockchain Library: Ethers.js v6.7.0
-- Network: Arc Testnet Layer 1
-
----
-
-📖 How To Use
-
-Connect Wallet
-
-Click the Connect Wallet button and approve the MetaMask or Brave Wallet request.
-
-Check Balance
-
-After connection, your native USDC balance will appear automatically.
-
-Send Tokens
-
-1. Enter recipient address ("0x...")
-2. Enter transfer amount
-3. Click Process Transfer
-4. Confirm transaction inside wallet
-
-Track Activity
-
-Recent transaction history appears inside the built-in ledger section.
-
----
-
-⚠️ Troubleshooting
-
-Balance Shows Zero
-
-Make sure you have received tokens from the Arc Testnet faucet.
-
-RPC Error
-
-Sometimes the RPC endpoint may temporarily fail. Refresh the page and reconnect.
-
-Transaction Failed
-
-Ensure your wallet has enough native gas tokens for transaction fees.
-
----
-
-🔒 Security
-
-This application never stores:
-
-- private keys
-- seed phrases
-- passwords
-
-All signing happens directly inside the connected wallet.
-
----
-
-Built with authority by @bhupendrxsingh
+    async function sendUSDC
