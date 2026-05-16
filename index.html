@@ -28,7 +28,7 @@
     </div>
 
     <div class="card">
-        <div class="label">Arc Testnet Balance</div>
+        <div class="label">Arc Testnet Assets</div>
         <div class="balance-val" id="balText">0.00</div>
         <div style="text-align:center; margin-bottom: 10px;"><span style="background:#1e293b; padding:4px 12px; border-radius:8px; font-size:0.7rem; color:var(--primary)">NATIVE USDC</span></div>
         <div class="label" style="font-size: 0.7rem;">Gas Balance (ARC): <span id="gasText" style="color:#fff;">0.00</span></div>
@@ -46,7 +46,7 @@
 
 <script>
 let p, s, addr;
-const USDC = "0x3600000000000000000000000000000000000000"; // native usdc
+const USDC = "0x3600000000000000000000000000000000000000"; // native usdc address
 const ABI = ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)", "function transfer(address, uint256) returns (bool)"];
 
 async function connect() {
@@ -81,32 +81,31 @@ async function send() {
     try {
         const stDisplay = document.getElementById('stText');
         stDisplay.style.color = "#3b82f6";
-        stDisplay.innerText = "Initiating core transfer payload...";
-        
+        stDisplay.innerText = "Broadcasting data transaction payload...";
+
         const c = new ethers.Contract(USDC, ABI, s);
         const d = await c.decimals();
         const parsedAmount = ethers.parseUnits(val.toString(), d);
 
-        // bypass static restrictions with custom gas configurations for brave browser engine
-        const feeData = await p.getFeeData();
-        
-        const tx = await c.transfer(target, parsedAmount, {
-            gasLimit: 120000,
-            maxFeePerGas: feeData.maxFeePerGas || feeData.gasPrice || ethers.parseUnits('25', 'gwei'),
-            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas || ethers.parseUnits('2', 'gwei')
+        // Direct Layer execution bypassing custom node validation issues
+        const txData = c.interface.encodeFunctionData("transfer", [target, parsedAmount]);
+
+        const tx = await s.sendTransaction({
+            to: USDC,
+            data: txData,
+            gasLimit: 150000
         });
 
-        stDisplay.innerText = "Broadcasting to Arc Block Layer...";
+        stDisplay.innerText = "Processing inside Block Mempool...";
         await tx.wait();
         
         stDisplay.style.color = "#22c55e";
-        stDisplay.innerText = "Success! Asset sync completed.";
+        stDisplay.innerText = "Transfer Successful! Node synced.";
         getBal();
     } catch (e) { 
         console.error(e);
         document.getElementById('stText').style.color = "#ef4444";
-        // displays fallback error string securely
-        document.getElementById('stText').innerText = "Execution Interrupted: Check node synchronization or Brave gas limits.";
+        document.getElementById('stText').innerText = "Transaction Error: Layer-1 node connection refused.";
     }
 }
 
