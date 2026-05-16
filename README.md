@@ -1,99 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ArcPro • Arc Testnet Wallet</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Inter', sans-serif; background:#0a0a0f; color:#e0e0ff; }
-    .container { max-width:480px; margin:0 auto; background:#111118; min-height:100vh; }
-    header { padding:16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #22222f; }
-    .logo { font-size:22px; font-weight:700; }
-    .card { background:#1a1a24; margin:16px; border-radius:20px; padding:20px; }
-    button { background:#3b82f6; color:white; border:none; padding:16px; border-radius:16px; width:100%; font-weight:600; font-size:16px; cursor:pointer; }
-    input { width:100%; background:#22222f; border:none; padding:16px; border-radius:16px; color:white; margin:8px 0; font-size:16px; }
-    .balance { font-size:32px; font-weight:700; }
-    .tx { padding:14px; background:#22222f; border-radius:16px; margin:8px 0; font-size:14px; }
-    .success { color:#22c55e; }
-    .ecosystem { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
-    .ecosystem div { background:#22222f; padding:14px; border-radius:12px; text-align:center; cursor:pointer; font-size:14px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <div class="logo">ArcPro</div>
-      <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
-    </header>
+# ArcPro • Arc Testnet Wallet
 
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;">
-        <div>
-          <div style="font-size:14px;opacity:0.7;">ARC TESTNET</div>
-          <div id="balanceDisplay" class="balance">0.00 USDC</div>
-        </div>
-        <span id="status" style="color:#22c55e;">Connected</span>
-      </div>
-    </div>
+A clean, minimal, and fully functional web wallet for **Arc Testnet** built for real builders.
 
-    <div class="card">
-      <strong>↗ Send USDC</strong>
-      <input type="text" id="recipient" placeholder="Recipient 0x..." />
-      <div style="margin:12px 0 8px;">Amount (USDC)</div>
-      <input type="number" id="amount" value="1" step="0.01" />
-      <button onclick="sendUSDC()">Confirm Send</button>
-    </div>
+![ArcPro Wallet](https://arc-pro-wallet.vercel.app/og-image.png) <!-- Optional: aap baad mein screenshot daal sakte ho -->
 
-    <div class="card">
-      <strong>Recent Transactions</strong>
-      <div id="txHistory" style="margin-top:12px;"></div>
-    </div>
+### Live Demo
+**[https://arc-pro-wallet.vercel.app](https://arc-pro-wallet.vercel.app)**
 
-    <div class="card">
-      <strong>Arc Ecosystem</strong>
-      <div class="ecosystem">
-        <div onclick="window.open('https://arc.network')">Website</div>
-        <div onclick="window.open('https://docs.arc.network')">Docs</div>
-        <div onclick="window.open('https://community.arc.network')">House</div>
-        <div onclick="window.open('https://x.com/Bhupendrxsingh')">@Bhupendrxsingh</div>
-        <div onclick="window.open('https://discord.gg/arcnetwork')">Discord</div>
-        <div onclick="window.open('https://t.me/Bhupendrxsingh')">Telegram</div>
-      </div>
-    </div>
-  </div>
+---
 
-  <script>
-    let provider, signer, userAddress;
-    const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
+### Features
 
-    async function connectWallet() {
-      const btn = document.getElementById("connectBtn");
-      btn.disabled = true;
-      btn.innerText = "Connecting...";
+- **Instant Wallet Connect** – MetaMask / Brave Wallet support
+- **Real USDC Transfers** on Arc Testnet
+- **Real-time Balance** updates
+- **Transaction History** with direct explorer links
+- **Clean & Modern UI** – Mobile-first dark design
+- **Direct Social Links** – X, Discord, LinkedIn, Arc House, Docs
 
-      try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userAddress = (await window.ethereum.request({ method: 'eth_accounts' }))[0];
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
+---
 
-        btn.innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
-        btn.style.background = "#22c55e";
-        getBalance();
-      } catch (e) {
-        alert("Connect failed: " + e.message);
-        btn.disabled = false;
-        btn.innerText = "Connect Wallet";
-      }
-    }
+### How to Use
 
-    async function getBalance() {
-      if (!provider) return;
-      const bal = await provider.getBalance(userAddress);
-      document.getElementById("balanceDisplay").innerText = (bal / 1e18).toFixed(4) + " USDC";
-    }
+1. Visit **[arc-pro-wallet.vercel.app](https://arc-pro-wallet.vercel.app)**
+2. Click **"Connect Wallet"**
+3. Switch to **Arc Testnet** (auto prompt karega)
+4. Get test USDC from [Circle Faucet](https://faucet.circle.com/)
+5. Send USDC to any address
+6. View transactions instantly with explorer link
 
-    async function sendUSDC
+---
+
+### Tech Stack
+
+- **Ethers.js v5**
+- **Vanilla HTML + CSS + JS** (Single file – easy to deploy)
+- **Arc Testnet** (EVM Compatible)
+- **USDC Contract**: `0x3600000000000000000000000000000000000000`
+
+---
+
+### Socials & Community
+
+- **X** — [@Bhupendrxsingh](https://x.com/Bhupendrxsingh)
+- **Discord** — [bhupendrxsingh](https://discord.com/users/1106549158124466197)
+- **LinkedIn** — [bhupendrxsingh](https://linkedin.com/in/bhupendrxsingh)
+- **Arc Website** — [arc.network](https://arc.network)
+- **Docs** — [docs.arc.network](https://docs.arc.network)
+- **Arc House** — [community.arc.network](https://community.arc.network)
+
+---
+
+### Made With ❤️ by Bhupendrxsingh
+
+Builder-first wallet for the Arc ecosystem.
+
+**Feedback aur contributions welcome!**
