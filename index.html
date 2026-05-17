@@ -20,7 +20,7 @@
     .success { color:#22c55e; }
     .ecosystem { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
     .ecosystem div { background:#22222f; padding:14px; border-radius:12px; text-align:center; cursor:pointer; font-size:14px; }
-    .send-section { opacity:0.5; pointer-events:none; }
+    .send-section { opacity:0.5; pointer-events:none; transition: opacity 0.3s ease; }
     .connected .send-section { opacity:1; pointer-events:auto; }
   </style>
 </head>
@@ -106,7 +106,7 @@
       try {
         const contract = new ethers.Contract(USDC_ADDRESS, ARC_ERC20_ABI, provider);
         const bal = await contract.balanceOf(userAddress);
-        document.getElementById("balanceDisplay").innerText = ethers.utils.formatUnits(bal, 6) + " USDC";
+        document.getElementById("balanceDisplay").innerText = parseFloat(ethers.utils.formatUnits(bal, 6)).toFixed(4) + " USDC";
       } catch (e) {
         console.error("Balance tracking failed:", e);
       }
