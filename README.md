@@ -2,7 +2,7 @@
 
 A clean, minimal, and fully functional web wallet for **Arc Testnet** built for real builders.
 
-![ArcPro Wallet](https://arc-pro-wallet.vercel.app/og-image.png) <!-- Optional: aap baad mein screenshot daal sakte ho -->
+![ArcPro Wallet](https://arc-pro-wallet.vercel.app/og-image.png)
 
 ### Live Demo
 **[https://arc-pro-wallet.vercel.app](https://arc-pro-wallet.vercel.app)**
@@ -12,6 +12,7 @@ A clean, minimal, and fully functional web wallet for **Arc Testnet** built for 
 ### Features
 
 - **Instant Wallet Connect** – MetaMask / Brave Wallet support
+- **Native USDC Core Integration** – Reads balance directly from contract layer via 6-decimal scaling
 - **Real USDC Transfers** on Arc Testnet
 - **Real-time Balance** updates
 - **Transaction History** with direct explorer links
@@ -24,19 +25,19 @@ A clean, minimal, and fully functional web wallet for **Arc Testnet** built for 
 
 1. Visit **[arc-pro-wallet.vercel.app](https://arc-pro-wallet.vercel.app)**
 2. Click **"Connect Wallet"**
-3. Switch to **Arc Testnet** (auto prompt karega)
+3. Switch to **Arc Testnet**
 4. Get test USDC from [Circle Faucet](https://faucet.circle.com/)
-5. Send USDC to any address
+5. Send USDC to any valid EVM address
 6. View transactions instantly with explorer link
 
 ---
 
 ### Tech Stack
 
-- **Ethers.js v5**
-- **Vanilla HTML + CSS + JS** (Single file – easy to deploy)
-- **Arc Testnet** (EVM Compatible)
-- **USDC Contract**: `0x3600000000000000000000000000000000000000`
+- **Ethers.js v5** (Standard UMD bundle)
+- **Vanilla HTML5 + CSS3 + JavaScript** (Single-file runtime infrastructure)
+- **Arc Testnet** (EVM Compatible state layer)
+- **USDC Target Contract**: `0x3600000000000000000000000000000000000000`
 
 ---
 
@@ -53,6 +54,4 @@ A clean, minimal, and fully functional web wallet for **Arc Testnet** built for 
 
 ### Made With ❤️ by Bhupendrxsingh
 
-Builder-first wallet for the Arc ecosystem.
-
-**Feedback aur contributions welcome!**
+Builder-first wallet for the Arc ecosystem. Feedback and production contributions welcome.
