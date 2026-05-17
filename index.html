@@ -70,6 +70,10 @@
   <script>
     let provider, signer, userAddress;
     const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
+    const ARC_ERC20_ABI = [
+      "function balanceOf(address account) view returns (uint256)",
+      "function transfer(address to, uint256 amount) returns (bool)"
+    ];
 
     async function connectWallet() {
       const btn = document.getElementById("connectBtn");
@@ -98,9 +102,14 @@
     }
 
     async function getBalance() {
-      if (!provider) return;
-      const bal = await provider.getBalance(userAddress);
-      document.getElementById("balanceDisplay").innerText = (bal / 1e18).toFixed(4) + " USDC";
+      if (!provider || !userAddress) return;
+      try {
+        const contract = new ethers.Contract(USDC_ADDRESS, ARC_ERC20_ABI, provider);
+        const bal = await contract.balanceOf(userAddress);
+        document.getElementById("balanceDisplay").innerText = ethers.utils.formatUnits(bal, 6) + " USDC";
+      } catch (e) {
+        console.error("Balance tracking failed:", e);
+      }
     }
 
     async function sendUSDC() {
@@ -113,10 +122,7 @@
       if (!amt || parseFloat(amt) <= 0) return alert("Please enter amount");
 
       try {
-        const contract = new ethers.Contract(USDC_ADDRESS, [
-          "function transfer(address to, uint256 amount) returns (bool)"
-        ], signer);
-
+        const contract = new ethers.Contract(USDC_ADDRESS, ARC_ERC20_ABI, signer);
         const amountFormatted = ethers.utils.parseUnits(amt, 6);
 
         const tx = await contract.transfer(to, amountFormatted);
